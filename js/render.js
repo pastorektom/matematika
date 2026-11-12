@@ -15,7 +15,11 @@ export function renderTex(el, tex, { display = false, trust = false } = {}) {
   if (engine) {
     try {
       const t = typeof trust === 'function' ? trust : false;
-      engine.render(src, el, { displayMode: display, throwOnError: false, trust: t, strict: 'ignore', output: 'htmlAndMathml' });
+      engine.render(src, el, { displayMode: display, throwOnError: false, trust: t, strict: 'ignore', output: 'html' });
+      // Samotné HTML bez skryté MathML kopie (ta se v některých prohlížečích zobrazila vedle vzorce
+      // jako prostý text). Čtečkám obrazovky zůstává zdroj vzorce v aria-label.
+      el.setAttribute?.('role', 'img');
+      el.setAttribute?.('aria-label', src);
       return el;
     } catch { /* spadne-li KaTeX, ukáže se zdroj */ }
   }

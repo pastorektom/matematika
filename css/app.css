@@ -736,3 +736,17 @@ body[data-auth="login"] .shell { display: block; }
   min-height: 36px; padding: 0 14px; border: 0; border-radius: var(--radius-s);
   background: var(--accent-soft); color: var(--accent-strong); font: inherit; font-weight: 600; cursor: pointer;
 }
+
+/* Pojistka: skrytá MathML kopie vzorce (kdyby se někdy znovu zapnula) nikdy nesmí být vidět. */
+.katex .katex-mathml {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
