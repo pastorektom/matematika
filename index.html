@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Matematika E1</title>
+  <meta name="description" content="Výklad, procvičování a řešené postupy k předmětu Matematika E1.">
+  <meta name="theme-color" content="#f2f3f0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e1417" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Matika">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/literata@5.0.21/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/instrument-sans@5.2.8/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/patrick-hand@5.2.8/index.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/board.css">
+  <link rel="stylesheet" href="css/viz.css">
+  <link rel="stylesheet" href="css/popout.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "katex": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.mjs",
+      "mathjs": "https://cdn.jsdelivr.net/npm/mathjs@13.2.0/+esm",
+      "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm"
+    }
+  }
+  </script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body data-route="home">
+  <a class="skip" href="#main">Přeskočit na obsah</a>
+  <div class="shell" data-nav="open">
+    <button type="button" class="nav-rail" id="nav-rail" aria-controls="sidebar" aria-expanded="false" aria-label="Zobrazit menu" title="Zobrazit menu">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+    <aside class="sidebar" id="sidebar" aria-label="Témata">
+      <a class="brand" href="#/"><span class="brand-mark" aria-hidden="true">∑</span><span>Matematika E1</span></a>
+      <button type="button" class="nav-collapse" id="nav-collapse" aria-controls="sidebar" aria-expanded="true" aria-label="Skrýt menu" title="Skrýt menu">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <a class="nav-formulas" id="nav-formulas" href="#/vzorce">Vzorce</a>
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-panel" aria-label="Témata">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Témata</span>
+      </button>
+      <div class="nav-panel" id="nav-panel">
+        <ol id="topic-list" class="topic-list"></ol>
+        <div id="account" class="account"></div>
+      </div>
+    </aside>
+    <div class="content">
+      <main id="main" class="main" tabindex="-1">
+        <p class="empty">Načítám…</p>
+      </main>
+    </div>
+  </div>
+  <button type="button" class="focus-exit" id="focus-exit" hidden>Ukončit focus režim (Esc)</button>
+  <noscript><p class="noscript">Aplikace potřebuje zapnutý JavaScript.</p></noscript>
+</body>
+</html>

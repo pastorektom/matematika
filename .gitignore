@@ -1,0 +1,10 @@
+Moodle_Matematika/
+node_modules/
+.env
+.superpowers/
+.playwright-mcp/
+content/
+.claude/
+dist/
+problems.sql
+*.sql.generated

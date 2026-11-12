@@ -1,0 +1,68 @@
+/* Okno tabule na druhém displeji (#/okno-tabule): bez navigace, pravá černá pro OLED,
+   křídově bílé tahy, velké plochy a velké cíle pro dotyk a pero. */
+
+body[data-route="popout"] {
+  --paper: #000; --surface: #0b0d0e; --surface-2: #131617; --line: #2a3033;
+  --board: #000; --ink: #eef2f0; --ink-soft: #a5b0b3;
+  --accent: #7fd0da; --accent-strong: #a3e0e8; --accent-soft: #123037; --on-accent: #02161a;
+  background: #000; color: var(--ink); color-scheme: dark;
+}
+body[data-route="popout"] .sidebar,
+body[data-route="popout"] .skip,
+body[data-route="popout"] .tabs { display: none; }
+body[data-route="popout"] .shell { display: block; }
+body[data-route="popout"] .main { max-width: none; padding: 0; }
+body[data-route="popout"] .board { background: #1a1f21; box-shadow: none; }
+body[data-route="popout"] .board-scroll,
+body[data-route="popout"] .viz-scroll { background: #000; box-shadow: none; }
+
+.popout { display: flex; flex-direction: column; height: 100vh; height: 100dvh; padding: 12px 14px 14px; gap: 10px; background: #000; }
+.po-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.po-info { flex: 1 1 18rem; min-width: 0; }
+.po-prompt { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 18px; }
+.po-prompt[hidden] { display: none; }
+.po-meta { margin: 0; color: var(--ink-soft); font-size: 0.9rem; }
+.po-task .formula { margin: 0; padding: 4px 0 4px 16px; background: transparent; border: 0; border-left: 3px solid var(--accent); box-shadow: none; border-radius: 0; }
+.po-task .katex { font-size: 1.25em; }
+.po-waiting { margin: 0; color: var(--ink-soft); }
+.po-waiting[hidden] { display: none; }
+
+.po-modes { display: inline-flex; padding: 4px; gap: 2px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; }
+.po-mode {
+  min-height: 44px; padding: 0 22px; font: inherit; font-weight: 600; color: var(--ink-soft);
+  background: transparent; border: 0; border-radius: 999px; cursor: pointer;
+}
+.po-mode[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
+.po-btn {
+  min-height: 44px; padding: 0 18px; font: inherit; font-weight: 600; color: var(--ink);
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; cursor: pointer;
+}
+.po-btn:hover:not(:disabled) { border-color: var(--accent); }
+.po-btn:disabled { opacity: 0.35; cursor: default; }
+.po-btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.po-btn-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.po-btn-primary:hover:not(:disabled) { background: var(--accent-strong); }
+
+.po-main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.po-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.po-panel[hidden] { display: none; }
+.po-board { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.po-board .wb { flex: 1; min-height: 0; }
+.po-board .wb-stage { flex: 1; height: auto; min-height: 0; background-color: #000; border-color: #23292c; box-shadow: none; }
+.po-board .wb-bar { background: #0b0d0e; border-color: var(--line); box-shadow: none; }
+.po-board .wb-group { background: #131617; }
+.po-board .wb-btn[data-role="wb-full"] { display: none; } /* celou obrazovku okna řeší tlačítko v záhlaví */
+.po-grade { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.po-grade[hidden] { display: none; }
+.po-grade-note { color: var(--ink-soft); margin-right: auto; }
+
+.po-steps-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.po-steps-body[hidden] { display: none; }
+.po-visual { font-size: clamp(1.1rem, 0.9rem + 0.6vw, 1.6rem); }
+.po-visual[hidden] { display: none; }
+.po-caption { padding: 12px 16px; border-left: 4px solid var(--chalk); border-radius: 10px; background: var(--surface-2); }
+.po-counter { margin: 0; color: var(--chalk); font-weight: 650; font-size: 0.9rem; }
+.po-step-title { margin: 2px 0 4px; font-family: var(--font-head); font-size: 1.25rem; font-weight: 600; }
+.po-nav { display: flex; gap: 12px; }
+.po-nav .po-btn { flex: 1; min-height: 56px; font-size: 1.1rem; }
+@media (min-width: 900px) { .po-nav .po-btn { flex: 0 0 14rem; } .po-nav { justify-content: space-between; } }

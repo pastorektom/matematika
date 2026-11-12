@@ -1,0 +1,14 @@
+{
+  "name": "matematika-e1",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "jsdom": "25.0.1",
+    "katex": "0.16.11",
+    "mathjs": "13.2.0"
+  }
+}
