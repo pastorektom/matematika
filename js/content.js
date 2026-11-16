@@ -25,6 +25,7 @@ export function hydrateProblems(topic, list) {
       }
     }
     const p = { ...built, ...raw, topic: topic.id, solution: raw.solution ?? built.solution ?? [] };
+    if (raw.solution && !raw.variants) delete p.variants;
     if (!p.promptTex || !p.answerSpec) continue;
     out.push(p);
   }

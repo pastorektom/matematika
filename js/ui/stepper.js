@@ -74,7 +74,7 @@ export function mountStepper(el, steps, opts = {}) {
     next.disabled = index === list.length - 1;
     if (active === prev && prev.disabled) next.focus();
     if (active === next && next.disabled) prev.focus();
-    if (typeof opts.onChange === 'function') opts.onChange(index);
+    if (typeof opts.onChange === 'function') opts.onChange(index, list);
   }
 
   prev.addEventListener('click', () => show(index - 1));
@@ -99,5 +99,46 @@ export function mountStepper(el, steps, opts = {}) {
       }
       el.textContent = '';
     },
+  };
+}
+
+// Krokovač příkladu: má-li příklad varianty postupu (problem.variants), nad krokovačem je přepínač
+// „Podrobný postup“ / varianta; volba se pamatuje v localStorage. Bez variant je to obyčejný mountStepper.
+const VKEY = 'matika-postup-varianta';
+export function mountSolution(el, problem, opts = {}) {
+  const doc = el.ownerDocument;
+  if (!problem.variants?.length) return mountStepper(el, problem.solution, opts);
+  const all = [{ id: 'detail', title: 'Podrobný postup', solution: problem.solution }, ...problem.variants];
+  let saved = null;
+  try { saved = localStorage.getItem(VKEY); } catch { /* bez ukládání */ }
+  let cur = Math.max(0, all.findIndex((v) => v.id === saved));
+  el.textContent = '';
+  const bar = h(doc, 'div', { class: 'variant-tabs', role: 'tablist', 'aria-label': 'Varianta postupu' });
+  const host = h(doc, 'div', { 'data-role': 'variant-host' });
+  el.append(bar, host);
+  const tabs = all.map((v, k) => h(doc, 'button', { type: 'button', role: 'tab', class: 'variant-tab', 'data-variant': v.id, text: v.title, onclick: () => choose(k, false) }));
+  bar.append(...tabs);
+  let stepper = null;
+  function choose(k, focus) {
+    cur = k;
+    try { localStorage.setItem(VKEY, all[k].id); } catch { /* bez ukládání */ }
+    tabs.forEach((t, i) => { t.setAttribute('aria-selected', String(i === k)); t.tabIndex = i === k ? 0 : -1; });
+    if (focus) tabs[k].focus();
+    stepper?.destroy();
+    stepper = mountStepper(host, all[k].solution, opts);
+  }
+  bar.addEventListener('keydown', (e) => {
+    const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (!d) return;
+    e.preventDefault();
+    choose((cur + d + all.length) % all.length, true);
+  });
+  choose(cur, false);
+  return {
+    get index() { return stepper.index; },
+    go: (i) => stepper.go(i),
+    next: () => stepper.next(),
+    prev: () => stepper.prev(),
+    destroy: () => { stepper?.destroy(); el.textContent = ''; },
   };
 }

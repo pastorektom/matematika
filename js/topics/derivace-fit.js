@@ -81,6 +81,7 @@ export function fitBoard(lines, lim = LIM) {
 export const fitProblem = (p) => ({
   ...p,
   solution: p.solution.map((st) => (st.board ? { ...st, board: fitBoard(st.board) } : st)),
+  ...(p.variants ? { variants: p.variants.map((v) => ({ ...v, solution: v.solution.map((st) => (st.board ? { ...st, board: fitBoard(st.board) } : st)) })) } : {}),
 });
 
 // Zlomek N/D s předponou; když se řádek nevejde, jdou čitatel a jmenovatel na zvláštní řádky.

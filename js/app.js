@@ -1,7 +1,7 @@
 // Vstup aplikace: načte KaTeX, témata a obsluhuje adresy (#/, #/tema/<id>/<záložka>).
 import { setTexEngine, renderTex, renderText, h } from './render.js';
 import { parseRoute, routeHref, TABS } from './router.js';
-import { mountStepper } from './ui/stepper.js';
+import { mountSolution } from './ui/stepper.js';
 import { stepVisual, disposeStepVisual } from './viz/step.js';
 import { renderTheory } from './ui/theory.js';
 import { mountPractice, buildFixedProblem, FIXED_TYPE, FIXED_TITLE } from './ui/practice.js';
@@ -190,9 +190,9 @@ function viewPostup(body, topic, query = {}) {
       id: `${topic.id}:${fixedMode ? FIXED_TYPE : type.id}:${problem.seed}`, promptTex: String(problem.promptTex ?? ''),
       topicTitle: topic.title, typeTitle: label, selfGraded: false,
     });
-    activeStepper = mountStepper(stepperEl, problem.solution, {
+    activeStepper = mountSolution(stepperEl, problem, {
       renderStepVisual: stepVisual, disposeStepVisual,
-      onChange: (i) => hub.setStep(stepMessage(problem.solution, i, boardForStep)),
+      onChange: (i, steps) => hub.setStep(stepMessage(steps, i, boardForStep)),
     });
     mark();
   }

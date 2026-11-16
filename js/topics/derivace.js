@@ -8,7 +8,7 @@ import {
   sumTex, powSumTex, parenTex, factorETex, substSumTex, sumStr, termTex, absTermTex,
   lineTex, xMinus, xPow, mulTerm, divTerm, limitInf, limitZeroPlus, parseFr, eTex, hasAtoms, constT,
 } from './derivace-lib.js';
-import { fitProblem, fracLines, rewriteLines, derivChain, minusTex, texWidth, LIM } from './derivace-fit.js';
+import { fitProblem, fracLines, rewriteLines, derivChain, rawDerivTex, minusTex, texWidth, LIM } from './derivace-fit.js';
 import { prubehTypes } from './derivace-prubeh.js';
 import { theory } from './derivace-teorie.js';
 import { elemTypes } from './derivace-elem.js';
@@ -152,6 +152,73 @@ function termDerivStep(t) {
   };
 }
 
+// Druhý, kratší postup „ze semináře“ (řetízek rovností na tabuli): odmocniny na mocniny v jednom zlomku,
+// rozdělení zlomku a odečtení exponentů, derivace po členech, úprava a zpět na odmocniny.
+const gcdN = (a, b) => (b ? gcdN(b, a % b) : Math.abs(a));
+function exponentLines(a, d) {
+  const e = sub(a, d);
+  const dP = d.n < 0 ? `(${frTex(d)})` : frTex(d);
+  const lines = [];
+  pushL(lines, `${frTex(a)}-${dP}`);
+  if (a.d !== d.d) {
+    const L = (a.d * d.d) / gcdN(a.d, d.d);
+    pushL(lines, `=\\frac{${a.n * (L / a.d)}}{${L}}-${d.n < 0 ? '(' : ''}\\frac{${d.n * (L / d.d)}}{${L}}${d.n < 0 ? ')' : ''}`);
+  }
+  pushL(lines, `=${frTex(e)}`);
+  return lines;
+}
+function seminarVariant(num, den, S, D, post) {
+  const steps = [];
+  const xp = (q) => (q.n === 1 && q.d === 1 ? 'x' : `x^{${frTex(q)}}`);
+  const wrap = (pre, tex) => `${pre}\\left(${tex}\\right)'`;
+  // 1. mocniny v jednom zlomku
+  const b1 = [];
+  if (den) {
+    const dRoot = absTermTex({ c: fr(1), p: den, E: 0, S: 0, C: 0, L: 0 });
+    const one = (pre, N, Dn) => {
+      const t = wrap(pre, `\\frac{${N}}{${Dn}}`);
+      return texWidth(t) <= LIM ? [mk(t)] : fracLines(pre.replace(/'\\(x\\)=$/, '(x)='), N, Dn);
+    };
+    for (const l of one("f'(x)=", sumTex(num), dRoot)) pushL(b1, l.tex);
+    for (const l of one('=', powSumTex(num), xp(den))) pushL(b1, l.tex);
+    steps.push({ title: 'Zápis jako mocniny v jednom zlomku', text: 'Odmocniny přepíšeme na mocniny, $\\sqrt[n]{x^p}=x^{p/n}$, a celý výraz zapíšeme jako jeden zlomek v závorce s čárkou (derivace).', board: b1 });
+    // 2. rozdělení a dělení mocnin
+    const dp = xp(den);
+    const parts = num.map((t, i) => `${t.c.n < 0 ? '-' : i ? '+' : ''}\\frac{${powSumTex([{ ...t, c: fr(Math.abs(t.c.n), t.c.d) }])}}{${dp}}`).join('');
+    const b2 = [];
+    pushL(b2, wrap('=', parts));
+    pushL(b2, wrap('=', num.map((t, i) => {
+      const sg = t.c.n < 0 ? '-' : i ? '+' : '';
+      const co = Math.abs(t.c.n) === 1 && t.c.d === 1 ? '' : frTex(fr(Math.abs(t.c.n), t.c.d));
+      return isZero(t.p) ? powTermTex({ ...t, p: sub(t.p, den) }, !i) : `${sg}${co}x^{${frTex(t.p)}-${frTex(den)}}`;
+    }).join('')));
+    for (const t of num) if (!isZero(t.p)) for (const l of exponentLines(t.p, den)) pushL(b2, l.tex);
+    pushL(b2, wrap('=', powSumTex(S)));
+    steps.push({ title: 'Rozdělení zlomku a dělení mocnin', text: 'Každý člen čitatele vydělíme jmenovatelem a mocniny dělíme odečtením exponentů: $\\frac{x^a}{x^b}=x^{a-b}$. Exponenty počítáme na společný jmenovatel.', board: b2 });
+  } else {
+    for (const l of [wrap("f'(x)=", sumTex(num)), wrap('=', powSumTex(S))]) pushL(b1, l);
+    steps.push({ title: 'Zápis jako mocniny', text: 'Odmocniny a zlomky přepíšeme na mocniny, $\\sqrt[n]{x^p}=x^{p/n}$ a $\\frac{1}{x^n}=x^{-n}$, a celý výraz derivujeme po členech.', board: b1 });
+  }
+  // 3. derivace po členech
+  const powBody = powSumTex(D);
+  const x5 = (q) => xp(q);
+  const body5 = D.map((t, i) => {
+    const sg = t.c.n < 0 ? '-' : i ? '+' : '';
+    return t.p.n < 0 ? `${sg}\\frac{${Math.abs(t.c.n)}}{${t.c.d !== 1 ? t.c.d : ''}${x5(fr(-t.p.n, t.p.d))}}` : powTermTex(t, !i);
+  }).join('') || '0';
+  const resBody = sumTex(D);
+  const b3 = [];
+  pushL(b3, `f'(x)=${rawDerivTex(S)}`);
+  if (powBody !== resBody) pushL(b3, `=${powBody}`);
+  steps.push({ title: 'Derivace po členech', text: 'Každý člen zderivujeme podle $(x^n)\'=n\\cdot x^{n-1}$: exponent se vynásobí s koeficientem a z exponentu odečteme jedničku. Konstanta se zderivuje na nulu.', board: b3 });
+  // 4. úprava a zpět na odmocniny
+  const b4 = [{ tex: '\\boxed{\\sqrt[n]{x^p}=x^{p/n}}' }];
+  if (body5 !== powBody && body5 !== resBody) pushL(b4, `=${body5}`);
+  b4.push(post(resBody));
+  steps.push({ title: 'Úprava a zpět na odmocniny', text: 'Záporné exponenty zapíšeme jako zlomky a koeficienty vynásobíme. Nakonec mocniny vrátíme na odmocniny podle vzorce v rámečku.', board: b4 });
+  return [{ id: 'seminar', title: 'Postup ze semináře', solution: steps }];
+}
+
 // =====================================================================
 // Typ 1: derivace součtu mocnin (odmocniny, zlomky 1/x^n, dělení mocninou x)
 // data = { terms: [{c, p}], den?: p }   f = (součet)/x^den
@@ -250,6 +317,7 @@ function solveMocniny(data) {
     answerSpec: exprSpec(sumStr(D)),
     answerTex: sumTex(D),
     solution: steps,
+    variants: seminarVariant(num, den, S, D, post),
   };
 }
 const MOC_POOL = [

@@ -750,3 +750,8 @@ body[data-auth="login"] .shell { display: block; }
   clip-path: inset(50%) !important;
   white-space: nowrap !important;
 }
+
+/* ---------- přepínač varianty postupu ---------- */
+.variant-tabs { display: inline-flex; max-width: 100%; flex-wrap: wrap; gap: 2px; padding: 4px; margin: 0 0 16px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; }
+.variant-tab { min-height: 44px; padding: 8px 18px; border: 0; border-radius: 999px; background: none; color: var(--ink-soft); font: inherit; font-weight: 550; cursor: pointer; }
+.variant-tab[aria-selected="true"] { background: var(--surface); color: var(--accent-strong); font-weight: 650; box-shadow: var(--shadow-1), 0 0 0 1px var(--line); }

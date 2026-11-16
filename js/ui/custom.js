@@ -2,7 +2,7 @@
 // aplikace vyřeší příklad stávajícím solverem typu a ukáže výsledek i postup na tabuli.
 // Typy s `custom: { fields, build }` jsou v js/topics/*.js, kontrola vstupu v js/custom-input.js.
 import { h, renderTex } from '../render.js';
-import { mountStepper } from './stepper.js';
+import { mountSolution } from './stepper.js';
 import { stepVisual, disposeStepVisual } from '../viz/step.js';
 import { createTypePicker } from './typepicker.js';
 import { matrixInput, mathField, symbolPanel } from './inputs.js';
@@ -120,7 +120,7 @@ export function mountCustom(el, topics, { initial, coarse } = {}) {
         const a = h(doc, 'div', { class: 'formula', 'data-role': 'custom-answer' });
         renderTex(a, problem.answerTex || '', { display: true });
         out.append(h(doc, 'p', { class: 'prompt-label', text: current.title }), q, h(doc, 'p', { class: 'prompt-label', text: 'Výsledek' }), a, steps);
-        stepper = mountStepper(steps, problem.solution, { renderStepVisual: stepVisual, disposeStepVisual });
+        stepper = mountSolution(steps, problem, { renderStepVisual: stepVisual, disposeStepVisual });
       } catch (e) {
         clearOut();
         errBox.className = 'feedback wrong';
