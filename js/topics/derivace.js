@@ -163,18 +163,7 @@ function solveMocniny(data) {
   const fTex = den ? `\\frac{${sumTex(num)}}{${denTex}}` : sumTex(num);
   const steps = [];
 
-  // 1. pravidlo
-  steps.push({
-    title: 'Pravidlo, které použijeme',
-    text: 'Celou funkci zderivujeme jediným pravidlem pro mocninu: $(x^n)\'=n\\cdot x^{n-1}$. Exponent $n$ napíšeme jako násobitel před $x$ a v exponentu odečteme jedničku. Například $(x^7)\'=7x^6$. K tomu potřebujeme ještě: konstantní násobek se opíše, součet a rozdíl se derivují po členech, derivace konstanty je 0 a derivace $x$ je 1.',
-    board: [
-      mk(`(x^{${hl('n', 'n')}})'=${hl('n', 'n')}\\cdot x^{${hl('n1', 'n-1')}}`),
-      mk(`(x^{${hl('n', '7')}})'=${hl('n', '7')}\\cdot x^{${hl('n1', '6')}}`),
-      { tex: "(c\\cdot f)'=c\\cdot f'" },
-      { tex: "(f\\pm g)'=f'\\pm g'" },
-      { tex: "c'=0,\\ \\ x'=1" },
-    ],
-  });
+  // Postup začíná rovnou počítáním; pravidlo (x^n)' = n·x^(n-1) je připomenuto v textu u každého členu.
 
   // 2. přepis na mocniny
   const rootsNum = num.filter((t) => needsRewrite(t) && t.p.n > 0);

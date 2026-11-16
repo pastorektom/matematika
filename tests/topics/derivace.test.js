@@ -381,13 +381,13 @@ test('derivace: kontroly proti materiálům z Moodlu (jen když je content/ k di
 });
 
 // ---------- podrobný postup typu „mocniny“ ----------
-test('mocniny: podrobný postup (≥ 5 kroků, krok na člen, odečtení exponentů, bez opakovaných řádků)', () => {
+test('mocniny: podrobný postup (začíná rovnou počítáním, krok na člen, odečtení exponentů, bez opakovaných řádků)', () => {
   const type = derivace.types.find((t) => t.id === 'mocniny');
   for (let seed = 1; seed <= 200; seed++) {
     const p = type.generate(makeRng(seed));
     const steps = p.solution;
-    assert.ok(steps.length >= 5, `seed ${seed}: ${steps.length} kroků`);
-    assert.equal(steps[0].title, 'Pravidlo, které použijeme');
+    assert.ok(steps.length >= 3, `seed ${seed}: ${steps.length} kroků`);
+    assert.notEqual(steps[0].title, 'Pravidlo, které použijeme', `seed ${seed}: postup nemá začínat obecnou tabulkou pravidel`);
     assert.ok(steps.every((s) => s.text && s.board.length), `seed ${seed}: krok bez textu nebo tabule`);
     const dn = p.data.den === undefined ? 0 : math.evaluate(String(p.data.den));
     const nonConst = p.data.terms.filter((t) => math.evaluate(String(t.p ?? 0)) !== dn).length;
@@ -408,7 +408,7 @@ test('mocniny: podrobný postup (≥ 5 kroků, krok na člen, odečtení exponen
   // konkrétní příklad: 3∛(x²) − 3/x
   const p = type.solve({ terms: [{ c: 3, p: '2/3' }, { c: -3, p: -1 }] });
   assert.deepEqual(p.solution.map((s) => s.title), [
-    'Pravidlo, které použijeme', 'Přepis odmocnin na mocniny', 'Derivace členu 3x^(2/3)', 'Derivace členu −3x^(−1)', 'Sečtení členů', 'Zpět na odmocniny a zlomky',
+    'Přepis odmocnin na mocniny', 'Derivace členu 3x^(2/3)', 'Derivace členu −3x^(−1)', 'Sečtení členů', 'Zpět na odmocniny a zlomky',
   ]);
   const all = p.solution.flatMap((s) => s.board.map((l) => l.tex));
   assert.ok(all.includes('\\frac{2}{3}-1=\\frac{2}{3}-\\frac{3}{3}=-\\frac{1}{3}'));
