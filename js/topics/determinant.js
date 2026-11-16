@@ -17,6 +17,7 @@ import {
   pAdd, pSub, pMul, pScale, pDeg, pTex, entryTex, rationalRoots, clearColumn, pickKey, zeroColumn, zeroRow,
   SARRUS_PLUS, SARRUS_MINUS,
 } from './determinant-lib.js';
+import { intMatrix, regularMatrix } from '../custom-input.js';
 
 const TOPIC = 'determinant';
 // Řádek tabule bez poznámek a mezer (stejně jako kontrola v testech).
@@ -1110,14 +1111,14 @@ export default {
   order: 3,
   theory,
   types: [
-    { id: 'det2', title: 'Determinant 2. řádu', generate: genDet2, solve: solveDet2 },
-    { id: 'sarrus', title: 'Sarrusovo pravidlo', generate: genSarrus, solve: solveSarrus },
-    { id: 'rozvoj', title: 'Laplaceův rozvoj', generate: genRozvoj, solve: solveRozvoj },
+    { id: 'det2', title: 'Determinant 2. řádu', generate: genDet2, solve: solveDet2, custom: { fields: [{ id: 'M', label: 'Matice A', kind: 'matrix', rows: 2, cols: 2, fixed: true }], build: (v) => ({ M: intMatrix(v.M, { square: true }) }) } },
+    { id: 'sarrus', title: 'Sarrusovo pravidlo', generate: genSarrus, solve: solveSarrus, custom: { fields: [{ id: 'M', label: 'Matice A', kind: 'matrix', rows: 3, cols: 3, fixed: true }], build: (v) => ({ M: intMatrix(v.M, { square: true }) }) } },
+    { id: 'rozvoj', title: 'Laplaceův rozvoj', generate: genRozvoj, solve: solveRozvoj, custom: { fields: [{ id: 'M', label: 'Matice A (3×3 až 5×5)', kind: 'matrix', rows: 3, cols: 3, square: true }], build: (v) => ({ M: intMatrix(v.M, { square: true, minN: 3 }) }) } },
     { id: 'uprava', title: 'Vyšší řád: nuly a rozvoj', generate: genUprava, solve: solveUprava },
     { id: 'schodovity', title: 'Schodovitý tvar', generate: genSchodovity, solve: solveSchodovity },
     { id: 'vlastnosti', title: 'Vlastnosti determinantu', generate: genVlastnosti, solve: solveVlastnosti },
     { id: 'parametr', title: 'Determinant s parametrem', generate: genParametr, solve: solveParametr },
-    { id: 'adjungovana', title: 'Inverzní matice přes adjungovanou', generate: genAdjungovana, solve: solveAdjungovana },
+    { id: 'adjungovana', title: 'Inverzní matice přes adjungovanou', generate: genAdjungovana, solve: solveAdjungovana, custom: { fields: [{ id: 'M', label: 'Regulární matice A (2×2 až 5×5)', kind: 'matrix', rows: 2, cols: 2, square: true }], build: (v) => ({ M: regularMatrix(v.M) }) } },
     { id: 'cramer', title: 'Cramerovo pravidlo', generate: genCramer, solve: solveCramer },
     { id: 'aplikace', title: 'Aplikace: návratnost investic', generate: genAplikace, solve: solveAplikace },
   ],

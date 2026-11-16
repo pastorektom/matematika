@@ -67,6 +67,8 @@ export function renderHome(el, { topics, stats = null, guest = false }) {
   })));
   el.appendChild(h(doc, 'p', { class: 'home-formulas' }, [
     h(doc, 'a', { class: 'btn btn-quiet', href: '#/vzorce', text: 'Přehled vzorců' }),
+    ' ',
+    h(doc, 'a', { class: 'btn btn-quiet', href: '#/vlastni', text: 'Vlastní příklad' }),
   ]));
   return el;
 }

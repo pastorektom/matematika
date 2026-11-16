@@ -17,6 +17,7 @@ import {
   varTex, varsTuple, renameVars, lhsTex, systemTex, arrayTex, pmatrix, ranks, jordanInt,
   detInt, detLines, adjugate, productEntryLines, splitLine, chainLines, texWidth, frM, mulM, subM, addM, eye, intM, dedupe, par,
 } from './soustavy-lib.js';
+import { intMatrix, fail } from '../custom-input.js';
 
 const TOPIC = 'soustavy';
 
@@ -830,7 +831,11 @@ export default {
   order: 4,
   theory,
   types: [
-    { id: 'gauss', title: 'Gaussova eliminace', generate: genGauss, solve: solveGauss },
+    { id: 'gauss', title: 'Gaussova eliminace', generate: genGauss, solve: solveGauss, custom: { fields: [{ id: 'M', label: 'Rozšířená matice (A | b): poslední sloupec jsou pravé strany', kind: 'matrix', rows: 3, cols: 4, hint: 'Každý řádek je jedna rovnice, poslední sloupec jsou pravé strany.' }], build: (v) => {
+      const M = intMatrix(v.M);
+      if (M[0].length < 2) fail('Rozšířená matice potřebuje aspoň jeden sloupec neznámých a sloupec pravých stran.');
+      return { A: M.map((r) => r.slice(0, -1)), b: M.map((r) => r[r.length - 1]) };
+    } } },
     { id: 'frobenius', title: 'Frobeniova věta (hodnosti)', generate: genFrobenius, solve: solveFrobenius },
     { id: 'homogenni', title: 'Homogenní soustava', generate: genHomogenni, solve: solveHomogenni },
     { id: 'jordan', title: 'Úplná (Jordanova) eliminace', generate: genJordan, solve: solveJordan },

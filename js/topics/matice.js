@@ -6,6 +6,7 @@
 // Inverzní matice přes adjungovanou matici patří do tématu „Determinant, adjungovaná matice“.
 // Symbolické úlohy (matice s písmeny a goniometrickými funkcemi) se nepřepisují.
 import { fr, frTex, toNum, gcd, gaussInt } from '../lin.js';
+import { intMatrix, regularMatrix, fail } from '../custom-input.js';
 
 const TOPIC = 'matice';
 
@@ -1195,13 +1196,17 @@ export default {
     { id: 'kombinace', title: 'Součet, násobek a transpozice', generate: genKombinace, solve: solveKombinace },
     { id: 'rovnice', title: 'Maticová rovnice', generate: genRovnice, solve: solveRovnice },
     { id: 'rovnost', title: 'Rovnost matic s neznámými', generate: genRovnost, solve: solveRovnost },
-    { id: 'soucin', title: 'Součin matic', generate: genSoucin, solve: solveSoucin },
+    { id: 'soucin', title: 'Součin matic', generate: genSoucin, solve: solveSoucin, custom: { fields: [{ id: 'A', label: 'Matice A', kind: 'matrix', rows: 2, cols: 2 }, { id: 'B', label: 'Matice B', kind: 'matrix', rows: 2, cols: 2 }], build: (v) => {
+      const A = intMatrix(v.A); const B = intMatrix(v.B);
+      if (A[0].length !== B.length) fail(`Součin není definován: A má ${A[0].length} sloupců, ale B má řádků: ${B.length} (musí se rovnat).`);
+      return { mats: { A, B }, factors: ['A', 'B'] };
+    } } },
     { id: 'typ-vysledku', title: 'Je součin definován? Typ výsledku', generate: genTyp, solve: solveTyp },
     { id: 'mocnina', title: 'Mocnina matice', generate: genMocnina, solve: solveMocnina },
     { id: 'polynom', title: 'Maticový polynom', generate: genPolynom, solve: solvePolynom },
-    { id: 'hodnost', title: 'Hodnost matice', generate: genHodnost, solve: solveHodnost },
+    { id: 'hodnost', title: 'Hodnost matice', generate: genHodnost, solve: solveHodnost, custom: { fields: [{ id: 'A', label: 'Matice A', kind: 'matrix', rows: 3, cols: 3 }], build: (v) => ({ rows: intMatrix(v.A) }) } },
     { id: 'hodnost-parametr', title: 'Hodnost s parametrem', generate: genParametr, solve: solveParametr },
-    { id: 'inverzni', title: 'Inverzní matice (Gauss–Jordan)', generate: genInverzni, solve: solveInverzni },
+    { id: 'inverzni', title: 'Inverzní matice (Gauss–Jordan)', generate: genInverzni, solve: solveInverzni, custom: { fields: [{ id: 'A', label: 'Regulární matice A (2×2 až 5×5)', kind: 'matrix', rows: 3, cols: 3, square: true }], build: (v) => ({ A: regularMatrix(v.A) }) } },
     { id: 'regularita', title: 'Hodnost a regularita (existuje A⁻¹?)', generate: genRegularita, solve: solveRegularita },
   ],
 };

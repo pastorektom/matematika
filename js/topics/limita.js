@@ -9,6 +9,7 @@ import {
   trim, deg, lead, evalP, mulP, addP, scaleP, rootP, divRoot, polyTex, nTerms, wrap, substTex,
   rootTex, aTex, lbl, limTex, resultTex, resultValue, formulaName, substStages,
 } from './limita-lib.js';
+import { polyOf, intOf, fail } from '../custom-input.js';
 
 const TOPIC = 'limita';
 const cls = (name, tex) => `\\htmlClass{bt-${name}}{${tex}}`;
@@ -1059,8 +1060,20 @@ export default {
   order: 6,
   theory,
   types: [
-    { id: 'dosazeni', title: 'Dosazení (spojitost)', generate: genDosazeni, solve: solveDosazeni },
-    { id: 'rozklad', title: 'Typ 0/0: rozklad a krácení', generate: genRozklad, solve: solveRozklad },
+    { id: 'dosazeni', title: 'Dosazení (spojitost)', generate: genDosazeni, solve: solveDosazeni, custom: { fields: [{ id: 'num', label: 'Čitatel', kind: 'expr', hint: 'Mnohočlen, např. x^2-1' }, { id: 'den', label: 'Jmenovatel', kind: 'expr', hint: 'Mnohočlen; prázdné = 1' }, { id: 'a', label: 'x → a, kde a =', kind: 'number', hint: 'Celé číslo' }], build: (v) => {
+      const num = polyOf(v.num); const den = polyOf(v.den, [1]); const a = intOf(v.a, 'Bod a');
+      const at = (p) => p.reduce((s, c, i) => s + c * a ** i, 0);
+      const nz = at(num) === 0; const dz = at(den) === 0;
+      if (dz) fail('Ve jmenovateli vyšla v bodě a nula, to je jiný typ limity (0/0 nebo k/0).');
+      return { num, den, a };
+    } } },
+    { id: 'rozklad', title: 'Typ 0/0: rozklad a krácení', generate: genRozklad, solve: solveRozklad, custom: { fields: [{ id: 'num', label: 'Čitatel', kind: 'expr', hint: 'Mnohočlen, např. x^2-1' }, { id: 'den', label: 'Jmenovatel', kind: 'expr', hint: 'Mnohočlen; prázdné = 1' }, { id: 'a', label: 'x → a, kde a =', kind: 'number', hint: 'Celé číslo' }], build: (v) => {
+      const num = polyOf(v.num); const den = polyOf(v.den, [1]); const a = intOf(v.a, 'Bod a');
+      const at = (p) => p.reduce((s, c, i) => s + c * a ** i, 0);
+      const nz = at(num) === 0; const dz = at(den) === 0;
+      if (!nz || !dz) fail('Pro tento typ musí být čitatel i jmenovatel v bodě a rovny nule (typ 0/0).');
+      return { num, den, a };
+    } } },
     { id: 'jednostranne', title: 'Typ k/0: jednostranné limity', generate: genJednostranne, solve: solveJednostranne },
     { id: 'odmocnina', title: 'Odmocniny: sdružený výraz', generate: genOdmocnina, solve: solveOdmocnina },
     { id: 'nekonecno', title: 'Limita v nekonečnu', generate: genNekonecno, solve: solveNekonecno },

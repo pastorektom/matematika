@@ -1,4 +1,4 @@
-// Adresy: #/  ·  #/vzorce  ·  #/okno-tabule (okno tabule na druhém displeji)  ·  #/tema/<id>/vyklad|procvicovani|postup  (bez záložky = vyklad)
+// Adresy: #/  ·  #/vzorce  ·  #/vlastni  ·  #/okno-tabule (okno tabule na druhém displeji)  ·  #/tema/<id>/vyklad|procvicovani|postup  (bez záložky = vyklad)
 export const TABS = [
   { id: 'vyklad', label: 'Výklad' },
   { id: 'procvicovani', label: 'Procvičování' },
@@ -21,6 +21,7 @@ export function parseRoute(hash) {
   const path = rawPath.replace(/^#/, '').replace(/^\/+|\/+$/g, '');
   if (path === '') return { name: 'home' };
   if (path === 'vzorce') return { name: 'formulas' };
+  if (path === 'vlastni') return { name: 'custom' };
   if (path === 'okno-tabule') return { name: 'popout' };
   const parts = path.split('/');
   if (parts[0] === 'tema' && parts[1] && parts.length <= 3) {

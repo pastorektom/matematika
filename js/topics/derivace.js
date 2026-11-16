@@ -12,6 +12,7 @@ import { fitProblem, fracLines, rewriteLines, derivChain, rawDerivTex, minusTex 
 import { prubehTypes } from './derivace-prubeh.js';
 import { theory } from './derivace-teorie.js';
 import { elemTypes } from './derivace-elem.js';
+import { termsOf } from '../custom-input.js';
 
 const TOPIC = 'derivace';
 const cls = (name, tex) => `\\htmlClass{bt-${name}}{${tex}}`;
@@ -927,9 +928,9 @@ export default {
   order: 7,
   theory,
   types: [
-    { id: 'mocniny', title: 'Derivace mocnin a odmocnin', generate: genMocniny, solve: solveMocniny },
-    { id: 'soucin', title: 'Derivace součinu', generate: genSoucin, solve: solveSoucin },
-    { id: 'podil', title: 'Derivace podílu', generate: genPodil, solve: solvePodil },
+    { id: 'mocniny', title: 'Derivace mocnin a odmocnin', generate: genMocniny, solve: solveMocniny, custom: { fields: [{ id: 'f', label: 'f(x) =', kind: 'expr', hint: 'Např. 3x^2-5x+1/x nebo sqrt(x)+2' }], build: (v) => ({ terms: termsOf(v.f) }) } },
+    { id: 'soucin', title: 'Derivace součinu', generate: genSoucin, solve: solveSoucin, custom: { fields: [{ id: 'u', label: 'První činitel u(x) =', kind: 'expr', hint: 'Např. 3x^2-5x+1/x nebo sqrt(x)+2' }, { id: 'v', label: 'Druhý činitel v(x) =', kind: 'expr', hint: 'Např. 3x^2-5x+1/x nebo sqrt(x)+2' }], build: (v) => ({ u: termsOf(v.u), v: termsOf(v.v) }) } },
+    { id: 'podil', title: 'Derivace podílu', generate: genPodil, solve: solvePodil, custom: { fields: [{ id: 'u', label: 'Čitatel u(x) =', kind: 'expr', hint: 'Např. 3x^2-5x+1/x nebo sqrt(x)+2' }, { id: 'v', label: 'Jmenovatel v(x) =', kind: 'expr', hint: 'Např. 3x^2-5x+1/x nebo sqrt(x)+2' }], build: (v) => ({ u: termsOf(v.u), v: termsOf(v.v) }) } },
     { id: 'slozena', title: 'Derivace složené funkce', generate: genSlozena, solve: solveSlozena },
     { id: 'druha', title: 'Druhá derivace', generate: genDruha, solve: solveDruha },
     { id: 'tecna', title: 'Tečna ke grafu', generate: genTecna, solve: solveTecna },

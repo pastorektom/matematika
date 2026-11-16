@@ -15,6 +15,7 @@
 import {
   fr, isZero, toNum, frTex, frStr, gaussInt, solveEchelon, paramStr, paramTex, gcd, rowEqTex,
 } from '../lin.js';
+import { intVector, fail } from '../custom-input.js';
 
 const TOPIC = 'vektory';
 
@@ -1007,7 +1008,11 @@ export default {
   types: [
     { id: 'kombinace', title: 'Součet a násobek (lineární kombinace)', generate: genKombinace, solve: solveKombinace },
     { id: 'rovnice', title: 'Vektorová rovnice', generate: genRovnice, solve: solveRovnice },
-    { id: 'skalarni-soucin', title: 'Skalární součin', generate: genSkalarni, solve: solveSkalarni },
+    { id: 'skalarni-soucin', title: 'Skalární součin', generate: genSkalarni, solve: solveSkalarni, custom: { fields: [{ id: 'a', label: 'Vektor a', kind: 'vector', rows: 3 }, { id: 'b', label: 'Vektor b', kind: 'vector', rows: 3 }], build: (v) => {
+      const a = intVector(v.a); const b = intVector(v.b);
+      if (a.length !== b.length) fail('Vektory musí mít stejný počet složek.');
+      return { a, b };
+    } } },
     { id: 'kolmost', title: 'Kolmost vektorů', generate: genKolmost, solve: solveKolmost },
     { id: 'je-kombinace', title: 'Je vektor lineární kombinací?', generate: genJeKombinace, solve: solveJeKombinace },
     { id: 'zavislost', title: 'Lineární závislost', generate: genZavislost, solve: solveZavislost },

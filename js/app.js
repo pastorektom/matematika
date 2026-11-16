@@ -13,6 +13,7 @@ import { initAuth, currentUser, signOut, onAuthEvent } from './auth.js';
 import { initProgress, setProgressUser, flushQueue, topicStats } from './progress.js';
 import { renderHome } from './ui/home.js';
 import { renderFormulas } from './ui/formulas.js';
+import { mountCustom } from './ui/custom.js';
 import { renderLogin, renderNewPassword } from './ui/login.js';
 import { createTypePicker } from './ui/typepicker.js';
 import { getHub, openPopout, stepMessage, POPOUT_HINT } from './ui/board-link.js';
@@ -92,6 +93,15 @@ function viewFormulas(main) {
   const body = h(doc, 'div');
   main.appendChild(body);
   renderFormulas(body);
+}
+
+function viewCustom(main) {
+  main.appendChild(h(doc, 'h1', { class: 'page-title', text: 'Vlastní příklad' }));
+  main.appendChild(h(doc, 'p', { class: 'lede', text: 'Zadej vlastní příklad a aplikace ho vyřeší krok za krokem. Čísla v maticích zadávej celá.' }));
+  const body = h(doc, 'div');
+  main.appendChild(body);
+  const c = mountCustom(body, topics);
+  activeStepper = { destroy: () => c.destroy(), next() {}, prev() {} };
 }
 
 function viewNotFound(main) {
@@ -237,11 +247,14 @@ function render() {
   renderTopicList(route);
   const fl = $('#nav-formulas');
   if (route.name === 'formulas') fl?.setAttribute('aria-current', 'page'); else fl?.removeAttribute('aria-current');
+  const cu = $('#nav-custom');
+  if (route.name === 'custom') cu?.setAttribute('aria-current', 'page'); else cu?.removeAttribute('aria-current');
   if (route.name === 'home') viewHome(main);
   else if (route.name === 'topic') viewTopic(main, route);
   else if (route.name === 'formulas') viewFormulas(main);
+  else if (route.name === 'custom') viewCustom(main);
   else viewNotFound(main);
-  const t = route.name === 'topic' ? topics.find((x) => x.id === route.id)?.title : route.name === 'formulas' ? 'Přehled vzorců' : null;
+  const t = route.name === 'topic' ? topics.find((x) => x.id === route.id)?.title : route.name === 'formulas' ? 'Přehled vzorců' : route.name === 'custom' ? 'Vlastní příklad' : null;
   doc.title = t ? `${t} – Matematika E1` : 'Matematika E1';
   main.focus({ preventScroll: true });
   window.scrollTo(0, 0);
