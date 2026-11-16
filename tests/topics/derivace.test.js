@@ -379,3 +379,39 @@ test('derivace: kontroly proti materiálům z Moodlu (jen když je content/ k di
     else assert.equal(r.ok, true, `${JSON.stringify(c)} -> ${JSON.stringify(full.answerSpec)}`);
   }
 });
+
+// ---------- podrobný postup typu „mocniny“ ----------
+test('mocniny: podrobný postup (≥ 5 kroků, krok na člen, odečtení exponentů, bez opakovaných řádků)', () => {
+  const type = derivace.types.find((t) => t.id === 'mocniny');
+  for (let seed = 1; seed <= 200; seed++) {
+    const p = type.generate(makeRng(seed));
+    const steps = p.solution;
+    assert.ok(steps.length >= 5, `seed ${seed}: ${steps.length} kroků`);
+    assert.equal(steps[0].title, 'Pravidlo, které použijeme');
+    assert.ok(steps.every((s) => s.text && s.board.length), `seed ${seed}: krok bez textu nebo tabule`);
+    const dn = p.data.den === undefined ? 0 : math.evaluate(String(p.data.den));
+    const nonConst = p.data.terms.filter((t) => math.evaluate(String(t.p ?? 0)) !== dn).length;
+    assert.equal(steps.filter((s) => s.title.startsWith('Derivace členu')).length, nonConst, `seed ${seed}: kroky po členech`);
+    const lines = steps.flatMap((s) => s.board.map((l) => l.tex));
+    lines.forEach((t, i) => { if (i && !t.startsWith('f') && t === lines[i - 1]) assert.fail(`seed ${seed}: zdvojený řádek ${t}`); });
+    for (const t of lines) assert.ok(!/--|\+-/.test(t), `seed ${seed}: ${t}`);
+    // zlomkový exponent: odečtení jedničky na společný jmenovatel
+    const termSteps = steps.filter((s) => s.title.startsWith('Derivace členu'));
+    for (const s of termSteps) {
+      if (!s.board[0].tex.includes('\\frac')) continue;
+      assert.ok(s.board.some((l) => /^(-?\\frac\{\d+\}\{(\d+)\})-1=\1-\\frac\{\2\}\{\2\}=-?(\\frac\{\d+\}\{\d+\}|\d+)$/.test(l.tex)), `seed ${seed}: chybí odečtení na společný jmenovatel u ${s.title}`);
+    }
+    const last = lines[lines.length - 1];
+    assert.ok(last.includes('bt-vysledek'));
+    assert.ok(steps[steps.length - 1].board.at(-1).notes.some((n) => n.kind === 'doubleUnderline'));
+  }
+  // konkrétní příklad: 3∛(x²) − 3/x
+  const p = type.solve({ terms: [{ c: 3, p: '2/3' }, { c: -3, p: -1 }] });
+  assert.deepEqual(p.solution.map((s) => s.title), [
+    'Pravidlo, které použijeme', 'Přepis odmocnin na mocniny', 'Derivace členu 3x^(2/3)', 'Derivace členu −3x^(−1)', 'Sečtení členů', 'Zpět na odmocniny a zlomky',
+  ]);
+  const all = p.solution.flatMap((s) => s.board.map((l) => l.tex));
+  assert.ok(all.includes('\\frac{2}{3}-1=\\frac{2}{3}-\\frac{3}{3}=-\\frac{1}{3}'));
+  assert.ok(all.includes('3\\cdot \\frac{2}{3}=2'));
+  assert.equal(check(p.answerSpec, '2/cbrt(x)+3/x^2').ok, true);
+});

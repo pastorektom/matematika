@@ -4,11 +4,11 @@
 // průběh funkce (rodiny funkcí s „hezkými“ body) je v js/topics/derivace-prubeh.js.
 import {
   fr, add, sub, mul, div, isZero, toNum, frTex, frStr,
-  term, sumOf, termData, norm, scale, neg, mulSum, subSum, dSum, sumAt, sumNum,
+  dTerm, powTermTex, xTex, term, sumOf, termData, norm, scale, neg, mulSum, subSum, dSum, sumAt, sumNum,
   sumTex, powSumTex, parenTex, factorETex, substSumTex, sumStr, termTex, absTermTex,
   lineTex, xMinus, xPow, mulTerm, divTerm, limitInf, limitZeroPlus, parseFr, eTex, hasAtoms, constT,
 } from './derivace-lib.js';
-import { fitProblem, fracLines, rewriteLines, derivChain, rawDerivTex, minusTex } from './derivace-fit.js';
+import { fitProblem, fracLines, rewriteLines, derivChain, minusTex, texWidth, LIM } from './derivace-fit.js';
 import { prubehTypes } from './derivace-prubeh.js';
 import { theory } from './derivace-teorie.js';
 import { elemTypes } from './derivace-elem.js';
@@ -39,6 +39,119 @@ function markLast(lines, pre = '=') {
 // Přidá řádek, jen když se liší od předchozího.
 const pushNew = (lines, tex) => { if (!lines.length || lines[lines.length - 1].tex !== tex) lines.push({ tex }); };
 
+// ---------- Typ 1: pomůcky pro podrobný postup ----------
+const COL = { c: 'accent', n: 'accent', m: 'accent', p: 'warn', k: 'warn', n1: 'warn' };
+const hl = (name, tex) => cls(name, tex);
+// Řádek tabule; barevné poznámky vzniknou ze všech použitých tříd bt-… (kromě výsledku).
+const mk = (tex) => {
+  const names = [...new Set([...tex.matchAll(/bt-([a-z0-9-]+)/g)].map((m) => m[1]))].filter((n) => n !== 'vysledek');
+  return names.length ? { tex, notes: names.map((n) => ({ kind: 'color', target: `bt-${n}`, color: COL[n] || 'accent' })) } : { tex };
+};
+const pushL = (lines, tex) => { if (!lines.length || lines[lines.length - 1].tex !== tex) lines.push(mk(tex)); };
+const rootTex = (k, n, kk = (x) => x, nn = (x) => x) => {
+  const inner = k === 1 ? 'x' : `x^{${kk(k)}}`;
+  return n === 2 ? `\\sqrt{${inner}}` : `\\sqrt[${nn(n)}]{${inner}}`;
+};
+const plainTitle = (t) => {
+  const a = fr(Math.abs(t.c.n), t.c.d);
+  const co = a.n === 1 && a.d === 1 ? '' : a.d === 1 ? String(a.n) : `(${frStr(a)})`;
+  const xs = isZero(t.p) ? '' : t.p.n === 1 && t.p.d === 1 ? 'x' : `x^${t.p.d === 1 && t.p.n > 0 ? t.p.n : `(${frStr(t.p).replace('-', '−')})`}`;
+  return `${t.c.n < 0 ? '−' : ''}${co}${xs || (co ? '' : '1')}`;
+};
+const needsRewrite = (t) => !isZero(t.p) && (t.p.n < 0 || t.p.d !== 1);
+
+// Přepis jednoho členu z odmocniny / zlomku na mocninu: √[n]{x^k} = x^{k/n}, 1/x^n = x^{-n}
+function toPowerLines(t) {
+  const lines = [];
+  if (t.c.d !== 1) { pushL(lines, `${termTex(t)}=${powTermTex(t)}`); return lines; }
+  const sg = t.c.n < 0 ? '-' : '';
+  const a = Math.abs(t.c.n);
+  const co = a === 1 ? '' : String(a);
+  const ap = fr(Math.abs(t.p.n), t.p.d);
+  const k = ap.n; const n = ap.d;
+  const w = Math.floor(k / n); const r = k - w * n;
+  const xw = w === 1 ? 'x' : `x^{${w}}`;
+  if (t.p.n < 0 && n === 1) {
+    pushL(lines, `${sg}\\frac{${a}}{${hl('n', k === 1 ? 'x' : `x^{${k}}`)}}=${sg}${co}x^{-${hl('n', k)}}`);
+  } else if (t.p.n > 0) {
+    if (w === 0) {
+      pushL(lines, `${sg}${co}${rootTex(k, n, (v) => hl('k', v), (v) => hl('n', v))}=${sg}${co}x^{\\frac{${hl('k', k)}}{${hl('n', n)}}}`);
+    } else {
+      pushL(lines, `${sg}${co}${xw}${hl('m', rootTex(r, n))}`);
+      pushL(lines, `=${sg}${co}${xw}\\cdot ${hl('m', `x^{\\frac{${r}}{${n}}}`)}`);
+      pushL(lines, `=${sg}${co}x^{${w}+\\frac{${r}}{${n}}}`);
+      pushL(lines, `=${sg}${co}x^{\\frac{${k}}{${n}}}`);
+    }
+  } else {
+    pushL(lines, `${sg}\\frac{${a}}{${hl('m', xTex(ap))}}`);
+    pushL(lines, `=${sg}\\frac{${a}}{${hl('m', `x^{\\frac{${k}}{${n}}}`)}}`);
+    pushL(lines, `=${sg}${co}x^{-${hl('m', `\\frac{${k}}{${n}}`)}}`);
+  }
+  return lines;
+}
+// Zpět: x^{-n} = 1/x^n, x^{k/n} = √[n]{x^k}, x^{-k/n} = 1/√[n]{x^k}
+function fromPowerLines(t) {
+  const lines = [];
+  if (t.c.d !== 1) { pushL(lines, `${powTermTex(t)}=${termTex(t)}`); return lines; }
+  const sg = t.c.n < 0 ? '-' : '';
+  const a = Math.abs(t.c.n);
+  const co = a === 1 ? '' : String(a);
+  const ap = fr(Math.abs(t.p.n), t.p.d);
+  const k = ap.n; const n = ap.d;
+  const w = Math.floor(k / n);
+  if (t.p.n < 0 && n === 1) {
+    pushL(lines, `${sg}${co}x^{-${hl('n', k)}}=${sg}\\frac{${a}}{${hl('n', k === 1 ? 'x' : `x^{${k}}`)}}`);
+  } else if (t.p.n > 0) {
+    pushL(lines, `${sg}${co}x^{\\frac{${hl('k', k)}}{${hl('n', n)}}}=${sg}${co}${rootTex(k, n, (v) => hl('k', v), (v) => hl('n', v))}`);
+    if (w > 0) pushL(lines, `=${termTex(t)}`);
+  } else {
+    pushL(lines, `${sg}${co}x^{-${hl('m', `\\frac{${k}}{${n}}`)}}`);
+    pushL(lines, `=${sg}\\frac{${a}}{${hl('m', `x^{\\frac{${k}}{${n}}}`)}}`);
+    pushL(lines, `=${sg}\\frac{${a}}{${hl('m', rootTex(k, n))}}`);
+    if (w > 0) pushL(lines, `=${termTex(t)}`);
+  }
+  return lines;
+}
+
+// Derivace jednoho členu c·x^p po řádcích (pravidlo, exponent, koeficient, výsledek).
+function termDerivStep(t) {
+  const d = dTerm(t)[0] || null;
+  const title = isZero(t.p) ? 'Derivace konstanty' : `Derivace členu ${plainTitle(t)}`;
+  const lines = [];
+  const c = t.c; const p = t.p;
+  const cT = frTex(c);
+  if (isZero(p)) {
+    pushL(lines, `(${cT})'=0`);
+    return { title, text: 'Konstanta se s $x$ nemění, její graf je vodorovná přímka se sklonem 0. Derivace každé konstanty je proto nula a člen z výsledku zmizí.', board: lines };
+  }
+  if (p.n === 1 && p.d === 1) {
+    if (c.n === 1 && c.d === 1) pushL(lines, "x'=1");
+    else {
+      pushL(lines, `(${hl('c', cT)}x)'`);
+      pushL(lines, `=${hl('c', cT)}\\cdot x'`);
+      pushL(lines, `=${hl('c', cT)}\\cdot 1`);
+      pushL(lines, `=${cT}`);
+    }
+    return { title, text: 'Člen $c\\cdot x$ je přímka se sklonem $c$. Podle pravidla $(c\\cdot f)\'=c\\cdot f\'$ konstantu opíšeme a $x\'=1$, takže výsledkem je samotné číslo $c$.', board: lines };
+  }
+  const pT = frTex(p);
+  const pP = p.n < 0 ? `(${pT})` : pT;
+  const unit = c.n === 1 && c.d === 1;
+  const cA = unit ? '' : c.n === -1 && c.d === 1 ? '-' : hl('c', cT);
+  pushL(lines, `(${cA}x^{${hl('p', pT)}})'`);
+  pushL(lines, `=${unit ? '' : `${hl('c', cT)}\\cdot `}${hl('p', pP)}\\,x^{${hl('p', pT)}-1}`);
+  const e = sub(p, fr(1));
+  pushL(lines, p.d === 1 ? `${pT}-1=${frTex(e)}` : `${pT}-1=${pT}-\\frac{${p.d}}{${p.d}}=${frTex(e)}`);
+  if (!unit) pushL(lines, `${cT}\\cdot ${pP}=${frTex(mul(c, p))}`);
+  pushL(lines, `=${powTermTex(d, true)}`);
+  const frac = p.d !== 1;
+  return {
+    title,
+    text: `Použijeme $(x^n)'=n\\cdot x^{n-1}$ s $n=${pT}$: exponent $${pT}$ se objeví jako násobitel před $x$${unit ? '' : ' (vynásobí se s číslem před $x$)'} a z exponentu se odečte jednička. ${frac ? 'Zlomky odečítáme na společný jmenovatel: jedničku zapíšeme jako zlomek se stejným jmenovatelem, jako má exponent. ' : ''}Exponent a koeficient dopočítáme zvlášť, aby se nic nepletlo.`,
+    board: lines,
+  };
+}
+
 // =====================================================================
 // Typ 1: derivace součtu mocnin (odmocniny, zlomky 1/x^n, dělení mocninou x)
 // data = { terms: [{c, p}], den?: p }   f = (součet)/x^den
@@ -49,40 +162,97 @@ function solveMocniny(data) {
   const denTex = den ? absTermTex({ c: fr(1), p: den, E: 0, S: 0, C: 0, L: 0 }) : '';
   const fTex = den ? `\\frac{${sumTex(num)}}{${denTex}}` : sumTex(num);
   const steps = [];
-  const rewrite = [{ tex: `f(x)=${fTex}` }];
+
+  // 1. pravidlo
+  steps.push({
+    title: 'Pravidlo, které použijeme',
+    text: 'Celou funkci zderivujeme jediným pravidlem pro mocninu: $(x^n)\'=n\\cdot x^{n-1}$. Exponent $n$ napíšeme jako násobitel před $x$ a v exponentu odečteme jedničku. Například $(x^7)\'=7x^6$. K tomu potřebujeme ještě: konstantní násobek se opíše, součet a rozdíl se derivují po členech, derivace konstanty je 0 a derivace $x$ je 1.',
+    board: [
+      mk(`(x^{${hl('n', 'n')}})'=${hl('n', 'n')}\\cdot x^{${hl('n1', 'n-1')}}`),
+      mk(`(x^{${hl('n', '7')}})'=${hl('n', '7')}\\cdot x^{${hl('n1', '6')}}`),
+      { tex: "(c\\cdot f)'=c\\cdot f'" },
+      { tex: "(f\\pm g)'=f'\\pm g'" },
+      { tex: "c'=0,\\ \\ x'=1" },
+    ],
+  });
+
+  // 2. přepis na mocniny
+  const rootsNum = num.filter((t) => needsRewrite(t) && t.p.n > 0);
+  const toRewrite = den ? rootsNum : S.filter(needsRewrite);
+  const denRoot = den && den.d !== 1;
+  if (toRewrite.length || denRoot) {
+    const lines = [mk(`f(x)=${fTex}`)];
+    if (denRoot) pushL(lines, `${rootTex(den.n, den.d)}=x^{\\frac{${den.n}}{${den.d}}}`);
+    for (const t of toRewrite) for (const l of toPowerLines(t)) pushL(lines, l.tex);
+    pushL(lines, den ? `f(x)=\\frac{${powSumTex(num)}}{x^{${frTex(den)}}}` : `f(x)=${powSumTex(S)}`);
+    steps.push({
+      title: 'Přepis odmocnin na mocniny',
+      text: 'Vzorec pro mocninu umíme jen pro $x^p$, proto odmocniny a zlomky nejdřív přepíšeme: $\\sqrt[n]{x^k}=x^{\\frac{k}{n}}$ (čitatel exponentu je mocnina pod odmocninou, jmenovatel je stupeň odmocniny) a $\\frac{1}{x^n}=x^{-n}$ (zlomek s $x$ ve jmenovateli je záporný exponent). Členy, které už jsou mocniny, opíšeme beze změny. Nakonec je celá funkce součet členů $c\\cdot x^p$.',
+      board: lines,
+    });
+  }
   if (den) {
     const dp = `x^{${frTex(den)}}`;
-    rewrite.push({ tex: `=${num.map((t, i) => `${t.c.n < 0 ? '-' : i ? '+' : ''}\\frac{${powSumTex([{ ...t, c: fr(Math.abs(t.c.n), t.c.d) }])}}{${dp}}`).join('')}` });
+    steps.push({
+      title: 'Rozdělení zlomku na členy',
+      text: 'Zlomek se součtem v čitateli rozdělíme na samostatné zlomky: každý člen čitatele vydělíme jmenovatelem.',
+      board: [mk(`=${num.map((t, i) => `${t.c.n < 0 ? '-' : i ? '+' : ''}\\frac{${powSumTex([{ ...t, c: fr(Math.abs(t.c.n), t.c.d) }])}}{${dp}}`).join('')}`)],
+    });
+    const dl = [];
+    for (const t of num) {
+      const sg = t.c.n < 0 ? '-' : '';
+      const absT = { ...t, c: fr(Math.abs(t.c.n), t.c.d) };
+      const st = { ...t, p: sub(t.p, den) };
+      const left = `${sg}\\frac{${powSumTex([absT])}}{${dp}}`;
+      if (isZero(t.p)) pushL(dl, `${left}=${powTermTex(st, true)}`);
+      else {
+        const co = absT.c.n === 1 && absT.c.d === 1 ? '' : frTex(absT.c);
+        pushL(dl, `${left}=${sg}${co}x^{${frTex(t.p)}-${frTex(den)}}`);
+        pushL(dl, `=${powTermTex(st, true)}`);
+      }
+    }
+    pushL(dl, `f(x)=${powSumTex(S)}`);
+    steps.push({
+      title: 'Dělení mocnin odečtením exponentů',
+      text: 'Mocniny se stejným základem dělíme tak, že exponenty odečteme: $\\frac{x^a}{x^b}=x^{a-b}$. Konstanta děleno $x^b$ je rovnou $x^{-b}$.',
+      board: dl,
+    });
   }
-  pushNew(rewrite, `=${powSumTex(S)}`);
-  const allInt = S.every((t) => t.p.d === 1 && t.p.n >= 0);
-  steps.push({
-    title: den ? 'Rozdělení zlomku a přepis na mocniny' : 'Přepis na mocniny',
-    text: den
-      ? 'Zlomek rozdělíme na jednotlivé členy a každý vydělíme jmenovatelem: mocniny se stejným základem dělíme odečtením exponentů. Odmocniny přepíšeme na mocniny s exponentem ve tvaru zlomku.'
-      : allInt
-        ? 'Všechny členy už jsou mocniny $x$. Derivace součtu je součet derivací, konstantu před členem jen opíšeme.'
-        : 'Odmocniny a zlomky přepíšeme na mocniny: $\\sqrt[n]{x^k}=x^{\\frac{k}{n}}$ a $\\frac{1}{x^n}=x^{-n}$. Pak na každý člen použijeme stejné pravidlo.',
-    board: rewrite,
-  });
-  const raw = rawDerivTex(S);
-  steps.push({
-    title: 'Derivace po členech',
-    text: 'Na každý člen použijeme pravidlo $(x^n)\'=n\\,x^{n-1}$: exponent napíšeme před mocninu a v exponentu odečteme jedničku. Derivace konstanty je 0, derivace $c\\cdot x$ je $c$.',
-    board: [{ tex: `f'(x)=${raw}` }],
-  });
+
+  // 3. derivace po členech
+  for (const t of S) steps.push(termDerivStep(t));
+
+  // 4. sečtení
   const D = dSum(S);
-  const lines = [];
-  pushNew(lines, `=${powSumTex(D)}`);
-  pushNew(lines, `=${sumTex(D)}`);
-  markLast(lines);
-  steps.push({
-    title: 'Úprava výsledku',
-    text: allInt
-      ? 'Vynásobíme čísla a dopočítáme exponenty.'
-      : 'Vynásobíme čísla, dopočítáme exponenty a záporné či zlomkové mocniny zapíšeme zpět jako zlomky a odmocniny.',
-    board: lines,
+  const parts = S.map((t) => {
+    const d = dTerm(t)[0];
+    return d ? powTermTex(d, false) : '+0';
   });
+  const sumLines = [];
+  pushL(sumLines, `f'(x)=${parts.join('').replace(/^\+/, '')}`);
+  pushL(sumLines, `f'(x)=${powSumTex(D)}`);
+  steps.push({
+    title: 'Sečtení členů',
+    text: 'Derivace součtu je součet derivací, takže výsledky jednotlivých členů znovu sečteme. Nulové členy (z konstant) vynecháme. Zatím máme derivaci zapsanou pomocí mocnin se zlomkovými a zápornými exponenty.',
+    board: sumLines,
+  });
+
+  // 5. zpět na odmocniny a zlomky
+  const back = D.filter(needsRewrite);
+  const post = (tex) => resultLine(texWidth(`f'(x)=${tex}`) <= LIM ? "f'(x)=" : '=', tex);
+  if (back.length) {
+    const lines = [];
+    for (const t of back) for (const l of fromPowerLines(t)) pushL(lines, l.tex);
+    lines.push(post(sumTex(D)));
+    steps.push({
+      title: 'Zpět na odmocniny a zlomky',
+      text: 'Výsledek zapíšeme jako na začátku: $x^{-n}=\\frac{1}{x^n}$ (záporný exponent znamená zlomek), $x^{\\frac{k}{n}}=\\sqrt[n]{x^k}$ (jmenovatel exponentu je stupeň odmocniny) a $x^{-\\frac{k}{n}}=\\frac{1}{\\sqrt[n]{x^k}}$. Je-li exponent větší než 1, vytkneme celou část: $x^{\\frac{3}{2}}=x\\sqrt{x}$. Členy s kladným celým exponentem se nemění.',
+      board: lines,
+    });
+  } else {
+    const last = steps[steps.length - 1];
+    last.board = [...last.board.slice(0, -1), post(powSumTex(D))];
+  }
   return {
     id: idOf('mocniny', data), topic: TOPIC, type: 'mocniny', data,
     task: 'Urči derivaci $f\'(x)$. Výsledek zapiš jako výraz v $x$, např. 6x^2 - 1/x^2 + 3/(2*sqrt(x)).',
