@@ -18,7 +18,7 @@ var PRECACHE = [
   'js/content.js', 'js/custom-input.js', 'js/formulas.js', 'js/lin.js', 'js/progress.js', 'js/pwa.js', 'js/render.js', 'js/rng.js', 'js/router.js',
   'js/topics/derivace-elem.js', 'js/topics/derivace-fit.js', 'js/topics/derivace-lib.js', 'js/topics/derivace-prubeh.js',
   'js/topics/derivace-teorie.js', 'js/topics/derivace.js', 'js/topics/determinant-lib.js', 'js/topics/determinant.js',
-  'js/topics/funkce-lib.js', 'js/topics/funkce.js', 'js/topics/index.js', 'js/topics/limita-lib.js', 'js/topics/limita.js',
+  'js/topics/funkce-lib.js', 'js/topics/funkce.js', 'js/topics/index.js', 'js/topics/limita-custom.js', 'js/topics/limita-lib.js', 'js/topics/limita.js',
   'js/topics/matice.js', 'js/topics/soustavy-lib.js', 'js/topics/soustavy.js', 'js/topics/vektory.js',
   'js/ui/board-link.js', 'js/ui/custom.js', 'js/ui/formulas.js', 'js/ui/home.js', 'js/ui/inputs.js', 'js/ui/login.js', 'js/ui/popout.js',
   'js/ui/practice.js', 'js/ui/shapes.js', 'js/ui/shell.js', 'js/ui/stepper.js', 'js/ui/theory.js', 'js/ui/typepicker.js',

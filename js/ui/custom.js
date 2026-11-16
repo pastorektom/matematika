@@ -8,7 +8,7 @@ import { createTypePicker } from './typepicker.js';
 import { matrixInput, mathField, symbolPanel } from './inputs.js';
 import { exprTex, MAX_DIM } from '../custom-input.js';
 
-export const customChoices = (topics) => topics.flatMap((t) => (t.types || []).filter((x) => x.custom)
+export const customChoices = (topics) => topics.flatMap((t) => [...(t.customTypes || []), ...(t.types || []).filter((x) => x.custom)]
   .map((x) => ({ id: `${t.id}/${x.id}`, title: x.title, group: t.title, type: x })));
 
 const KEY = 'matika-vlastni:';
@@ -64,6 +64,14 @@ function textField(doc, f, saved) {
   return { el: h(doc, 'div', {}, [input, prev]), inputs: () => [input], get: () => input.value };
 }
 
+// Volba z několika možností (select) -> stejné rozhraní jako ostatní pole
+function choiceField(doc, f, saved) {
+  const sel = h(doc, 'select', { class: 'answer-input', id: `vl-${f.id}`, 'aria-label': f.label },
+    f.options.map((o) => h(doc, 'option', { value: o, text: o })));
+  sel.value = f.options.includes(saved) ? saved : f.options[0];
+  return { el: h(doc, 'div', {}, [sel]), inputs: () => [], get: () => sel.value, onChange: (fn) => sel.addEventListener('change', fn) };
+}
+
 export function mountCustom(el, topics, { initial, coarse } = {}) {
   const doc = el.ownerDocument;
   const choices = customChoices(topics);
@@ -84,17 +92,28 @@ export function mountCustom(el, topics, { initial, coarse } = {}) {
     formHost.textContent = '';
     const { custom } = current.type;
     const saved = load(current.id) || {};
-    const fields = custom.fields.map((f) => ({ f, w: f.kind === 'matrix' || f.kind === 'vector' ? gridField(doc, f, saved[f.id]) : textField(doc, f, saved[f.id]) }));
+    const fields = custom.fields.map((f) => ({ f, w: f.kind === 'matrix' || f.kind === 'vector' ? gridField(doc, f, saved[f.id]) : f.kind === 'choice' ? choiceField(doc, f, saved[f.id]) : textField(doc, f, saved[f.id]) }));
+    const wraps = [];
+    const prevBox = custom.preview ? h(doc, 'div', { class: 'formula', 'aria-live': 'polite', 'data-role': 'custom-preview', hidden: true }) : null;
+    const values = () => Object.fromEntries(fields.map(({ f, w }) => [f.id, w.get()]));
+    const refresh = () => {
+      const v = values();
+      wraps.forEach(({ f, box }) => { box.hidden = !!f.when && !f.when(v); });
+      if (!prevBox) return;
+      const t = custom.preview(v);
+      prevBox.hidden = !t;
+      if (t) renderTex(prevBox, t, { display: true });
+    };
     const texts = fields.flatMap((x) => x.w.inputs());
     const errBox = h(doc, 'p', { class: 'feedback', role: 'alert', 'data-role': 'custom-error' });
     const solve = () => {
       clearOut();
       errBox.className = 'feedback';
       errBox.textContent = '';
-      const values = Object.fromEntries(fields.map(({ f, w }) => [f.id, w.get()]));
-      save(current.id, values);
+      const vals = values();
+      save(current.id, vals);
       try {
-        const problem = current.type.solve(custom.build(values));
+        const problem = current.type.solve(custom.build(vals));
         const steps = h(doc, 'div', { 'data-role': 'custom-steps' });
         const q = h(doc, 'div', { class: 'formula' });
         renderTex(q, problem.promptTex, { display: true });
@@ -108,11 +127,19 @@ export function mountCustom(el, topics, { initial, coarse } = {}) {
         errBox.textContent = String(e?.message || '').replace(/^[a-z-]+: /, '') || 'Příklad se nepodařilo vyřešit. Zkontroluj zadání.';
       }
     };
-    formHost.append(...fields.flatMap(({ f, w }) => [
-      h(doc, 'p', { class: 'prompt-label', text: f.label }),
-      f.hint ? h(doc, 'p', { class: 'prompt-label', text: f.hint }) : null,
-      w.el,
-    ]));
+    formHost.append(...fields.map(({ f, w }) => {
+      const box = h(doc, 'div', {}, [
+        h(doc, 'p', { class: 'prompt-label', text: f.label }),
+        f.hint ? h(doc, 'p', { class: 'prompt-label', text: f.hint }) : null,
+        w.el,
+      ]);
+      wraps.push({ f, box });
+      return box;
+    }));
+    if (prevBox) formHost.append(prevBox);
+    texts.forEach((i) => i.addEventListener('input', refresh));
+    fields.forEach(({ w }) => w.onChange?.(refresh));
+    refresh();
     if (texts.length) {
       const s = symbolPanel(doc, texts, { coarse });
       formHost.append(h(doc, 'div', { class: 'actions' }, [s.toggle]), s.panel);

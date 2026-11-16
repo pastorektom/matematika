@@ -6,8 +6,10 @@ import determinant from './determinant.js';
 import soustavy from './soustavy.js';
 import funkce from './funkce.js';
 import limita from './limita.js';
+import { limitFractionType } from './limita-custom.js';
 import derivace from './derivace.js';
 
+limita.customTypes = [limitFractionType];
 export const topics = [vektory, matice, determinant, soustavy, funkce, limita, derivace];
 export default topics;
 
