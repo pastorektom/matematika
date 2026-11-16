@@ -55,7 +55,7 @@ function textField(doc, f, saved) {
   const prev = f.kind === 'expr' ? h(doc, 'div', { class: 'formula', 'aria-live': 'polite' }) : null;
   const upd = () => {
     if (!prev) return;
-    const t = input.value.trim() && exprTex(input.value);
+    const t = input.value.trim() && (f.tex ? f.tex(input.value) : exprTex(input.value));
     prev.hidden = !t;
     if (t) renderTex(prev, t);
   };
@@ -141,7 +141,7 @@ export function mountCustom(el, topics, { initial, coarse } = {}) {
     fields.forEach(({ w }) => w.onChange?.(refresh));
     refresh();
     if (texts.length) {
-      const s = symbolPanel(doc, texts, { coarse });
+      const s = symbolPanel(doc, texts, { coarse, kind: custom.keypad });
       formHost.append(h(doc, 'div', { class: 'actions' }, [s.toggle]), s.panel);
     }
     formHost.append(

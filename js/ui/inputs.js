@@ -26,7 +26,20 @@ export const INTERVAL_SYMBOLS = [
   { label: 'e', insert: 'e', title: 'Eulerovo číslo' },
 ];
 
+// Funkce pro zadání libovolné funkce f(x) (kind === 'function'); kurzor skončí uvnitř závorky.
+export const FUNCTION_SYMBOLS = [
+  { label: 'sin', insert: 'sin()', caret: 4, title: 'Sinus' },
+  { label: 'cos', insert: 'cos()', caret: 4, title: 'Kosinus' },
+  { label: 'tg', insert: 'tg()', caret: 3, title: 'Tangens' },
+  { label: 'cotg', insert: 'cotg()', caret: 5, title: 'Kotangens' },
+  { label: 'ln', insert: 'ln()', caret: 3, title: 'Přirozený logaritmus' },
+  { label: 'e^', insert: 'e^()', caret: 3, title: 'Exponenciála e na něco' },
+  { label: 'arcsin', insert: 'arcsin()', caret: 7, title: 'Arkus sinus' },
+  { label: 'arctg', insert: 'arctg()', caret: 6, title: 'Arkus tangens' },
+];
+
 export function symbolsFor(kind) {
+  if (kind === 'function') return [...SYMBOLS, ...FUNCTION_SYMBOLS];
   return kind === 'interval' ? [...SYMBOLS, ...INTERVAL_SYMBOLS] : SYMBOLS;
 }
 
