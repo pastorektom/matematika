@@ -755,3 +755,22 @@ body[data-auth="login"] .shell { display: block; }
 .variant-tabs { display: inline-flex; max-width: 100%; flex-wrap: wrap; gap: 2px; padding: 4px; margin: 0 0 16px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; }
 .variant-tab { min-height: 44px; padding: 8px 18px; border: 0; border-radius: 999px; background: none; color: var(--ink-soft); font: inherit; font-weight: 550; cursor: pointer; }
 .variant-tab[aria-selected="true"] { background: var(--surface); color: var(--accent-strong); font-weight: 650; box-shadow: var(--shadow-1), 0 0 0 1px var(--line); }
+
+/* Test (#/test) */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.test-group { margin: 0 0 16px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.test-group legend { padding: 0 6px; font-weight: 600; }
+.test-opts { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.test-opt { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; cursor: pointer; }
+.test-bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 14px; margin-bottom: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-1); font-weight: 600; }
+.test-clock { font-variant-numeric: tabular-nums; }
+.test-clock[data-warn="true"] { color: var(--bad); }
+.test-strip { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.test-strip li { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--accent); }
+.test-strip li[data-done="true"] { background: var(--accent); }
+.test-q, .test-result { margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.test-result[data-correct="true"] { border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+.test-result[data-correct="false"] { border-color: color-mix(in srgb, var(--bad) 40%, transparent); }
+.test-results { margin: 0; padding: 0; list-style: none; }
+.test-score { margin: 0 0 8px; font-family: var(--font-head); font-size: 2rem; font-weight: 600; }
+.test-detail summary { cursor: pointer; font-weight: 600; color: var(--accent-strong); min-height: 40px; }

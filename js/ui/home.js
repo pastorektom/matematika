@@ -69,6 +69,8 @@ export function renderHome(el, { topics, stats = null, guest = false }) {
     h(doc, 'a', { class: 'btn btn-quiet', href: '#/vzorce', text: 'Přehled vzorců' }),
     ' ',
     h(doc, 'a', { class: 'btn btn-quiet', href: '#/vlastni', text: 'Vlastní příklad' }),
+    ' ',
+    h(doc, 'a', { class: 'btn btn-quiet', href: '#/test', text: 'Test: limity a derivace' }),
   ]));
   return el;
 }

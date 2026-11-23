@@ -14,6 +14,7 @@ import { initProgress, setProgressUser, flushQueue, topicStats } from './progres
 import { renderHome } from './ui/home.js';
 import { renderFormulas } from './ui/formulas.js';
 import { mountCustom } from './ui/custom.js';
+import { mountTest } from './ui/test.js';
 import { renderLogin, renderNewPassword } from './ui/login.js';
 import { createTypePicker } from './ui/typepicker.js';
 import { getHub, openPopout, stepMessage, POPOUT_HINT } from './ui/board-link.js';
@@ -102,6 +103,14 @@ function viewCustom(main) {
   main.appendChild(body);
   const c = mountCustom(body, topics);
   activeStepper = { destroy: () => c.destroy(), next() {}, prev() {} };
+}
+
+function viewTest(main, route) {
+  main.appendChild(h(doc, 'h1', { class: 'page-title', text: 'Test' }));
+  const body = h(doc, 'div');
+  main.appendChild(body);
+  const t = mountTest(body, topics, { seed: route.seed, c: route.c });
+  activeStepper = { destroy: () => t.destroy(), next() {}, prev() {} };
 }
 
 function viewNotFound(main) {
@@ -249,12 +258,15 @@ function render() {
   if (route.name === 'formulas') fl?.setAttribute('aria-current', 'page'); else fl?.removeAttribute('aria-current');
   const cu = $('#nav-custom');
   if (route.name === 'custom') cu?.setAttribute('aria-current', 'page'); else cu?.removeAttribute('aria-current');
+  const te = $('#nav-test');
+  if (route.name === 'test') te?.setAttribute('aria-current', 'page'); else te?.removeAttribute('aria-current');
   if (route.name === 'home') viewHome(main);
   else if (route.name === 'topic') viewTopic(main, route);
   else if (route.name === 'formulas') viewFormulas(main);
   else if (route.name === 'custom') viewCustom(main);
+  else if (route.name === 'test') viewTest(main, route);
   else viewNotFound(main);
-  const t = route.name === 'topic' ? topics.find((x) => x.id === route.id)?.title : route.name === 'formulas' ? 'Přehled vzorců' : route.name === 'custom' ? 'Vlastní příklad' : null;
+  const t = route.name === 'topic' ? topics.find((x) => x.id === route.id)?.title : route.name === 'formulas' ? 'Přehled vzorců' : route.name === 'custom' ? 'Vlastní příklad' : route.name === 'test' ? 'Test' : null;
   doc.title = t ? `${t} – Matematika E1` : 'Matematika E1';
   main.focus({ preventScroll: true });
   window.scrollTo(0, 0);
