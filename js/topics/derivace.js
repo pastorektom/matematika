@@ -613,17 +613,29 @@ function solveSlozena(data) {
     acos: "(\\arccos y)'=-\\frac{1}{\\sqrt{1-y^{2}}}", apow: `(${n}^{y})'=${n}^{y}\\ln ${n}`, log: `(\\log_{${n}}y)'=\\frac{1}{y\\ln ${n}}`,
   }[outer];
   const steps = [];
+  const cut = outerRule.indexOf(")'=");
+  const fy = outerRule.slice(1, cut);
+  const fpy = outerRule.slice(cut + 3);
   steps.push({
     title: 'Vnější a vnitřní funkce',
-    text: `Funkce je složená: vnější funkce je ${outerName}, do které je dosazena vnitřní funkce $y=${inT}$ (označená závorkou).`,
-    board: [{ tex: `f(x)=${fTex}`, notes: [brace('in', 'vnitřní y', 'below')] }],
+    text: `Funkci zapíšeme jako $h(x)=f(g(x))$. Vnější funkce $f$ je ${outerName}, do které je dosazena vnitřní funkce $g(x)=${inT}$ (označená závorkou).`,
+    board: [
+      { tex: `h(x)=${fTex}`, notes: [brace('in', 'vnitřní g(x)', 'below')] },
+      { tex: 'h(x)=f(g(x))' },
+      { tex: `\\text{vnější: }f(y)=${fy}` },
+      { tex: `\\text{vnitřní: }g(x)=${inT}` },
+    ],
   });
   const dInP = parenTex(dIn);
   steps.push({
     title: 'Řetízkové pravidlo',
-    text: `Derivujeme vnější funkci podle vzorce $${outerRule}$ a vnitřek přitom necháme beze změny; výsledek vynásobíme derivací vnitřní funkce $(${inT})'=${sumTex(dIn)}$.`,
+    text: `Pravidlo: $h'(x)=f'(g(x))\\cdot g'(x)$. Derivujeme vnější funkci podle vzorce $${outerRule}$ a vnitřek přitom necháme beze změny, tedy $f'$ počítáme v bodě $g(x)$; výsledek vynásobíme derivací vnitřní funkce $g'(x)=${sumTex(dIn)}$.`,
     board: [
-      { tex: `f'(x)=${cls('out', outerD)}\\cdot ${cls('din', `(${inT})'`)}`, notes: [brace('out', 'vnější derivace'), brace('din', 'vnitřní derivace', 'below')] },
+      { tex: "h'(x)=f'(g(x))\\cdot g'(x)" },
+      { tex: `f'(y)=${fpy}` },
+      { tex: `f'(g(x))=${outerD}` },
+      { tex: `g'(x)=${sumTex(dIn)}` },
+      { tex: `h'(x)=${cls('out', outerD)}\\cdot ${cls('din', `(${inT})'`)}`, notes: [brace('out', 'vnější derivace'), brace('din', 'vnitřní derivace', 'below')] },
       { tex: `=${outerD}\\cdot ${dInP}` },
     ],
   });
@@ -692,8 +704,8 @@ function solveSlozena(data) {
   });
   return {
     id: idOf('slozena', data), topic: TOPIC, type: 'slozena', data,
-    task: 'Urči derivaci složené funkce $f\'(x)$. Výsledek zapiš jako výraz v $x$, např. 6*x*(x^2+1)^2. Zápis: tg = tan, arctg = atan, arccotg = acot, arcsin = asin, arccos = acos, log_a(y) = log(y, a), přirozený logaritmus = log(y).',
-    promptTex: `f(x)=${fPlain}`,
+    task: 'Urči derivaci složené funkce $h\'(x)$. Výsledek zapiš jako výraz v $x$, např. 6*x*(x^2+1)^2. Zápis: tg = tan, arctg = atan, arccotg = acot, arcsin = asin, arccos = acos, log_a(y) = log(y, a), přirozený logaritmus = log(y).',
+    promptTex: `h(x)=${fPlain}`,
     hint: HINT_EXPR,
     answerSpec: exprSpec(str),
     answerTex: res,

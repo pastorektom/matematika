@@ -383,7 +383,7 @@ function ruleText(n) {
     case 'soucet': return 'derivace součtu člen po členu';
     case 'soucin': return 'pravidlo pro součin';
     case 'podil': return 'pravidlo pro podíl';
-    default: { const o = outer(n); return `pravidlo pro složenou funkci (vnější funkce $${sw(o.fT, 'u')}$)`; }
+    default: { const o = outer(n); return `pravidlo pro složenou funkci (vnější funkce $f(y)=${sw(o.fT, 'y')}$)`; }
   }
 }
 
@@ -409,9 +409,9 @@ function rozbor(f, terms) {
     text = `Nejvyšší operace je podíl a ve jmenovateli je $x$: čitatel $u=${T(a.u)}$, jmenovatel $v=${T(a.v)}$. Použijeme pravidlo $\\left(\\frac{u}{v}\\right)'=\\frac{u'v-uv'}{v^{2}}$.`;
   } else if (k === 'slozena') {
     const a = an(f);
-    marks.set(a.u, 'u');
-    notes.push(brace('u', 'u', 'below'));
-    text = `Nejvyšší operace je složená funkce: vnější funkce je ${a.o.name} $${sw(a.o.fT, 'u')}$, vnitřní funkce je $u=${T(a.u)}$. Použijeme pravidlo $\\left[f(u)\\right]'=f'(u)\\cdot u'$.`;
+    marks.set(a.u, 'g');
+    notes.push(brace('g', 'g', 'below'));
+    text = `Nejvyšší operace je složená funkce: funkci zapíšeme jako $h(x)=f(g(x))$, kde vnější funkce $f$ je ${a.o.name} $f(y)=${sw(a.o.fT, 'y')}$ a vnitřní funkce $g$ je $g(x)=${T(a.u)}$. Použijeme pravidlo $h'(x)=f'(g(x))\\cdot g'(x)$.`;
   } else if (k === 'konstmul') {
     const a = an(f);
     marks.set(a.parts[0], 'g'); notes.push(brace('g', 'g', 'below'));
@@ -507,18 +507,20 @@ function termSteps(n, f, pfx) {
   const inner = cd(a.u);
   const res = resOf(a, [inner.res]);
   const lines = [
-    L(`\\text{vnější: }f(u)=${sw(o.fT, 'u')}`),
-    L(`\\text{vnitřní: }u=${cls('u', T(a.u))}`),
-    L(`f'(u)=${sw(o.fpT, 'u')}`),
+    L('h(x)=f(g(x))'),
+    L(`\\text{vnější: }f(y)=${sw(o.fT, 'y')}`),
+    L(`\\text{vnitřní: }g(x)=${cls('g', T(a.u))}`),
+    L(`f'(y)=${sw(o.fpT, 'y')}`),
+    L(`f'(g(x))=${T(o.fp(a.u))}`),
   ];
-  prefixed("u'=", inner.lines).forEach((l) => lines.push(L(l)));
-  lines.push(L("\\left[f(u)\\right]'=f'(u)\\cdot u'"));
-  lines.push(L(`${lhs ? `${lhs}=` : `${prime(n)}=`}${T(a.build([inner.res]))}`));
+  prefixed("g'(x)=", inner.lines).forEach((l) => lines.push(L(l)));
+  lines.push(L("h'(x)=f'(g(x))\\cdot g'(x)"));
+  lines.push(L(`=${T(a.build([inner.res]))}`));
   lines.push(L(`=${T(res)}`));
   return {
     steps: [{
       title: t(`Složená funkce: ${o.name}`),
-      text: `Složená funkce: vnější funkce je ${o.name} $f(u)=${sw(o.fT, 'u')}$, vnitřní funkce je $u=${T(a.u)}$. Pravidlo: $\\left[f(u)\\right]'=f'(u)\\cdot u'$, tedy derivace vnější funkce (s dosazeným $u$) krát derivace vnitřní funkce. Vnější derivace je $f'(u)=${sw(o.fpT, 'u')}$; $u'$ najdeme takto: ${ruleText(a.u)}.`,
+      text: `Složená funkce: $h(x)=f(g(x))$, vnější funkce $f$ je ${o.name} $f(y)=${sw(o.fT, 'y')}$, vnitřní funkce $g$ je $g(x)=${T(a.u)}$. Pravidlo: $h'(x)=f'(g(x))\\cdot g'(x)$, tedy derivace vnější funkce $f'$ v bodě $g(x)$ krát derivace vnitřní funkce $g'(x)$. Vnější derivace je $f'(y)=${sw(o.fpT, 'y')}$; $g'(x)$ najdeme takto: ${ruleText(a.u)}.`,
       board: dedupe2(lines),
     }],
     res,

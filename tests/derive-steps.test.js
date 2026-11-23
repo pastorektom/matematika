@@ -145,14 +145,14 @@ test('součin: kroky pojmenují u, v, u′, v′ a vzorec', () => {
   assert.match(r.steps[0].text, /součin/);
   assert.equal(r.steps.at(-1).board.at(-1).notes[0].kind, 'doubleUnderline');
 });
-test('složená funkce: vnější a vnitřní funkce, f′(u)·u′', () => {
+test('složená funkce: vnější a vnitřní funkce, h′(x)=f′(g(x))·g′(x)', () => {
   const r = deriveWithSteps('sin(3x+1)');
   const L = lines(r);
   assert.ok(L.some((l) => l.startsWith('\\text{vnější:}')) || L.some((l) => l.includes('vnější')), 'vnější');
   assert.ok(L.some((l) => l.includes('vnitřní')), 'vnitřní');
-  assert.ok(L.includes("f'(u)=\\cosu"), "f'(u)");
-  assert.ok(L.includes("u'=(3x+1)'=(3x)'+(1)'") || L.some((l) => l.startsWith("u'=")), "u'");
-  assert.ok(L.some((l) => l.includes("f'(u)\\cdotu'")));
+  assert.ok(L.includes("f'(y)=\\cosy"), "f'(y)");
+  assert.ok(L.some((l) => l.startsWith("g'(x)=")), "g'(x)");
+  assert.ok(L.some((l) => l.includes("h'(x)=f'(g(x))\\cdotg'(x)")));
   assert.equal(r.answerExpr.replace(/\s/g, ''), '3*cos(3*x+1)');
 });
 test('součin tří činitelů: první řádek ve stylu tabule a vnořený součin', () => {

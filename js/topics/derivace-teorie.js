@@ -31,10 +31,11 @@ export const theory = [
   },
   {
     heading: 'Složená funkce (řetízkové pravidlo)',
-    text: 'Složená funkce vznikne dosazením jedné funkce (vnitřní) do druhé (vnější), např. $\\sqrt{x^2+1}$: vnější je odmocnina, vnitřní $y=x^2+1$.\n\nDerivujeme „zvenku dovnitř“: nejdřív vnější funkci podle vzorce, přičemž vnitřek opíšeme beze změny, a výsledek vynásobíme derivací vnitřní funkce. Je-li vnoření víc, násobíme derivacemi všech vrstev.\n\nPříklady: $(\\sin 3x)\'=3\\cos 3x$, $(e^{x^2})\'=2x\\,e^{x^2}$, $(\\ln(x^2+1))\'=\\frac{2x}{x^2+1}$, $(\\sin^3x)\'=3\\sin^2x\\cos x$.',
-    tex: "\\big(f(g(x))\\big)'=f'(g(x))\\cdot g'(x)",
+    text: 'Složená funkce vznikne dosazením jedné funkce (vnitřní funkce $g$) do druhé (vnější funkce $f$): $h(x)=f(g(x))$. Např. u $\\sqrt{x^2+1}$ je vnější funkce $f(y)=\\sqrt{y}$ a vnitřní funkce $g(x)=x^2+1$.\n\nDerivace je $h\'(x)=f\'(g(x))\\cdot g\'(x)$: derivaci vnější funkce $f\'$ spočteme v bodě $g(x)$ (vnitřek opíšeme beze změny) a vynásobíme derivací vnitřní funkce $g\'(x)$. Je-li vnoření víc, násobíme derivacemi všech vrstev.\n\nPříklady: $(\\sin 3x)\'=3\\cos 3x$, $(e^{x^2})\'=2x\\,e^{x^2}$, $(\\ln(x^2+1))\'=\\frac{2x}{x^2+1}$, $(\\sin^3x)\'=3\\sin^2x\\cos x$.',
+    tex: "h(x)=f(g(x)),\\ h'(x)=f'(g(x))\\cdot g'(x)",
     mistakes: [
-      'Zapomenout vynásobit derivací vnitřní funkce – nejčastější chyba vůbec.',
+      'Zapomenout vynásobit derivací vnitřní funkce $g\'(x)$ – nejčastější chyba vůbec.',
+      '$f\'$ se počítá v bodě $g(x)$: vnitřek se opisuje beze změny, nesmí se přepsat ani zjednodušit.',
       'Derivovat vnitřní funkci uvnitř vnější: $(\\sin x^2)\'$ není $\\cos 2x$, ale $2x\\cos x^2$.',
       'U $\\ln$ složené funkce nezapomenout, že výsledek je zlomek: $\\frac{\\text{derivace vnitřku}}{\\text{vnitřek}}$.',
     ],

@@ -83,7 +83,7 @@ export const formulaGroups = [
       { tex: "(\\sin x)'=\\cos x,\\quad (\\cos x)'=-\\sin x,\\quad (\\operatorname{tg}x)'=\\dfrac1{\\cos^2x}", note: 'Tabulka derivací: goniometrické funkce.' },
       { tex: "(\\operatorname{arctg}x)'=\\dfrac1{1+x^2},\\quad (\\arcsin x)'=\\dfrac1{\\sqrt{1-x^2}}", note: 'Tabulka derivací: cyklometrické funkce.' },
       { tex: "(f\\pm g)'=f'\\pm g',\\quad (cf)'=cf',\\quad (fg)'=f'g+fg'", note: 'Pravidla derivování: součet, násobek, součin.' },
-      { tex: "\\Bigl(\\dfrac fg\\Bigr)'=\\dfrac{f'g-fg'}{g^2},\\qquad \\bigl(f(g(x))\\bigr)'=f'(g(x))\\cdot g'(x)", note: 'Pravidla derivování: podíl a složená funkce (vnější krát vnitřní).' },
+      { tex: "\\Bigl(\\dfrac fg\\Bigr)'=\\dfrac{f'g-fg'}{g^2},\\qquad h(x)=f(g(x)),\\ h'(x)=f'(g(x))\\cdot g'(x)", note: 'Pravidla derivování: podíl a složená funkce (vnější funkce $f$, vnitřní funkce $g$).' },
       { tex: "(u^v)'=u^v\\Bigl(v'\\ln u+v\\dfrac{u'}{u}\\Bigr)", note: 'Logaritmická derivace: nejdřív zlogaritmujeme obě strany.' },
       { tex: "\\lim_{x\\to a}\\dfrac{f(x)}{g(x)}=\\lim_{x\\to a}\\dfrac{f'(x)}{g'(x)}", note: "l'Hospitalovo pravidlo: jen pro tvar $\\tfrac00$ nebo $\\tfrac\\infty\\infty$; derivujeme zvlášť čitatel a jmenovatel (ne podíl)." },
       { tex: "y-f(x_0)=f'(x_0)\\,(x-x_0)", note: "Tečna ke grafu v bodě $x_0$. Směrnice je $f'(x_0)$." },
