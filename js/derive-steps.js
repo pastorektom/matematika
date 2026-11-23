@@ -528,6 +528,117 @@ function termSteps(n, f, pfx) {
 }
 const dedupe2 = (lines) => lines.filter((l, i) => i === 0 || l.tex !== lines[i - 1].tex);
 
+// ---------- postup ze semináře: jeden řetízek rovností ----------
+// Derivace se zapisují jako značky (…)′; jedno kolo použije pravidlo jednou na všechny značky a vznikne další řádek řetízku.
+const mI = (...a) => ({ t: 'mul', a, imp: true });
+const hasDer = (n) => {
+  switch (n.t) {
+    case 'der': return true;
+    case 'add': case 'mul': return n.a.some(hasDer);
+    case 'div': return hasDer(n.n) || hasDer(n.d);
+    case 'pow': return hasDer(n.b) || hasDer(n.e);
+    case 'neg': return hasDer(n.a);
+    case 'fn': return hasDer(n.a);
+    default: return false;
+  }
+};
+const ratOf = (e) => (e.t === 'num' ? e.v : e.t === 'neg' && e.a.t === 'num' ? R(-e.a.v.n, e.a.v.d) : null);
+const withDer = (core, d) => {
+  if (!d) return core;
+  if (core.t === 'neg') return neg(withDer(core.a, d));
+  if (core.t === 'div' && core.n.t === 'num' && core.n.v.n === 1 && core.n.v.d === 1) return div(d, core.d);
+  return mI(core, d);
+};
+function derRule(a, used) {
+  if (!dep(a)) return num(0);
+  if (a.t === 'x') return num(1);
+  try { used.add(KIND_NAME[kindOf(a)]); } catch { /* bez názvu pravidla */ }
+  switch (a.t) {
+    case 'add': return add(...a.a.map((it) => (it.t === 'neg' ? neg(der(it.a)) : der(it))));
+    case 'neg': return neg(der(a.a));
+    case 'mul': {
+      const [p, q] = a.a;
+      return dep(p) ? add(mI(der(p), q), mI(p, der(q))) : mI(p, der(q));
+    }
+    case 'div': return dep(a.d)
+      ? div(add(mI(der(a.n), a.d), neg(mI(a.n, der(a.d)))), pow(a.d, two))
+      : div(der(a.n), a.d);
+    default: {
+      const o = outer(a);
+      const d = o.u.t === 'x' ? null : der(o.u);
+      if (a.t === 'pow' && !dep(a.e)) {
+        const v = ratOf(a.e);
+        const ne = v ? numR(R(v.n - v.d, v.d)) : add(a.e, neg(one));
+        const k = v ? ne.v : null;
+        const base = k && k.n === 1 && k.d === 1 ? o.u : k && k.n === 0 ? null : pow(o.u, ne);
+        const c = v && v.n < 0 ? numR(R(-v.n, v.d)) : (v ? numR(v) : a.e);
+        const core = base ? mI(c, base) : c;
+        return withDer(v && v.n < 0 ? neg(core) : core, d);
+      }
+      return withDer(o.fp(o.u), d);
+    }
+  }
+}
+function roundOf(n, used) {
+  switch (n.t) {
+    case 'der': return derRule(n.a, used);
+    case 'add': return add(...n.a.map((c) => roundOf(c, used)));
+    case 'mul': return { ...n, a: n.a.map((c) => roundOf(c, used)) };
+    case 'div': return div(roundOf(n.n, used), roundOf(n.d, used));
+    case 'pow': return pow(roundOf(n.b, used), roundOf(n.e, used));
+    case 'neg': return neg(roundOf(n.a, used));
+    case 'fn': return n.base ? fn(n.f, roundOf(n.a, used), n.base) : fn(n.f, roundOf(n.a, used));
+    default: return n;
+  }
+}
+const isOne = (n) => n.t === 'num' && n.v.n === 1 && n.v.d === 1;
+function tidy(n) {
+  switch (n.t) {
+    case 'add': return add(...n.a.map(tidy));
+    case 'mul': {
+      const a = n.a.map(tidy).filter((c, i, l) => !(isOne(c) && l.length > 1));
+      if (a.length === 1) return a[0];
+      const coef = a.length === 2 && !n.imp && a[0].t === 'num' && a[0].v.d === 1 && a[1].t !== 'num';
+      return { ...n, a, imp: n.imp || coef };
+    }
+    case 'div': return div(tidy(n.n), tidy(n.d));
+    case 'pow': { const b = tidy(n.b); return isOne(n.e) ? b : pow(b, tidy(n.e)); }
+    case 'neg': return neg(tidy(n.a));
+    case 'fn': return n.base ? fn(n.f, tidy(n.a), n.base) : fn(n.f, tidy(n.a));
+    default: return n;
+  }
+}
+function seminar(f, final) {
+  const finTex = T(final);
+  let cur = der(f);
+  const lines = [{ tex: `f'(x)=${T(cur)}`, r: 0 }];
+  const rew = T(cur, { plainPow: true });
+  const rewritten = rew !== T(cur);
+  if (rewritten) lines.push({ tex: `=${rew}`, r: 0 });
+  const used = [];
+  for (let i = 1; hasDer(cur); i++) {
+    if (i > 12) fail('Tuhle funkci se nepodařilo zderivovat.');
+    const u = new Set();
+    cur = tidy(roundOf(cur, u));
+    used.push([...u]);
+    lines.push({ tex: `=${T(cur)}`, r: i });
+  }
+  const sTex = T(simp(cur));
+  if (sTex !== lines.at(-1).tex.slice(1) && sTex !== finTex && sTex.includes('\\frac') === finTex.includes('\\frac')) lines.push({ tex: `=${sTex}`, r: 99 });
+  const uniq = lines.filter((l, i) => i === 0 || l.tex !== lines[i - 1].tex);
+  while (uniq.length > 1 && uniq.at(-1).tex === `=${finTex}`) uniq.pop();
+  const plain = (r0, r1) => fitLines(uniq.filter((l) => l.r >= r0 && l.r <= r1).map((l) => L(l.tex)));
+  const chain = used.flat().includes(KIND_NAME.slozena);
+  const names = (k) => [...new Set(used[k] || [])].join(', ');
+  const steps = [
+    { title: 'Přepis funkce', text: `Derivaci zapíšeme jako $f'(x)=(f)'$ a vyznačíme tak, co se bude derivovat.${rewritten ? ' Mocninu funkce zapíšeme se závorkou, aby bylo vidět, co se umocňuje.' : ''}`, board: plain(0, 0) },
+    { title: 'Použití pravidla', text: `Na každou značku derivace použijeme jedno pravidlo (${names(0) || 'vzorec'}) a derivaci zapíšeme dál.${chain ? " Složená funkce $h(x)=f(g(x))$: $h'(x)=f'(g(x))\cdot g'(x)$, tedy derivace vnější funkce $f$ v bodě $g(x)$ krát derivace vnitřní funkce $g$." : ''}`, board: plain(1, 1) },
+    { title: 'Dosazení derivací', text: "Zbývající derivace $(\dots)'$ dopočítáme stejným způsobem (vzorec nebo pravidlo), dokud na tabuli nezůstane žádná čárka.", board: plain(2, 98) },
+    { title: 'Úprava výsledku', text: 'Vynásobíme a sloučíme: vynecháme násobení jedničkou a sčítání nuly, spojíme čísla a stejné činitele.', board: [...plain(99, 99), ...resultLines('=', finTex)] },
+  ].filter((s) => s.board.length);
+  return { id: 'seminar', title: 'Postup ze semináře', solution: steps, rawExpr: str(cur) };
+}
+
 function derive(input) {
   const s = prepare(input);
   let node;
@@ -566,7 +677,7 @@ function derive(input) {
   });
   // zalamování dlouhých řádků ve všech krocích kromě výsledku
   steps.forEach((st, i) => { if (i < steps.length - 1) st.board = fitLines(st.board); });
-  return { fTex: T(f), answerTex: finTex, answerExpr: str(final), steps };
+  return { fTex: T(f), answerTex: finTex, answerExpr: str(final), steps, variants: [seminar(f, final)] };
 }
 
 export function deriveWithSteps(input) {

@@ -21,6 +21,7 @@ export const derivAnyType = {
       answerSpec: { kind: 'expression', value: r.answerExpr, variable: 'x' },
       answerTex: r.answerTex,
       solution: r.steps,
+      variants: r.variants,
     };
   },
   custom: {

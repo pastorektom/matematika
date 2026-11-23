@@ -13,6 +13,7 @@ import { prubehTypes } from './derivace-prubeh.js';
 import { theory } from './derivace-teorie.js';
 import { elemTypes } from './derivace-elem.js';
 import { termsOf } from '../custom-input.js';
+import { deriveWithSteps } from '../derive-steps.js';
 
 const TOPIC = 'derivace';
 const cls = (name, tex) => `\\htmlClass{bt-${name}}{${tex}}`;
@@ -705,6 +706,11 @@ function solveSlozena(data) {
   return {
     id: idOf('slozena', data), topic: TOPIC, type: 'slozena', data,
     task: 'Urči derivaci složené funkce $h\'(x)$. Výsledek zapiš jako výraz v $x$, např. 6*x*(x^2+1)^2. Zápis: tg = tan, arctg = atan, arccotg = acot, arcsin = asin, arccos = acos, log_a(y) = log(y, a), přirozený logaritmus = log(y).',
+    variants: (() => {
+      const fS = outer === 'pow' ? (isAtom(inner) ? `${atomName(inner[0])}(x)^${n}` : `(${iS})^${n}`)
+        : outer === 'apow' ? `${n}^(${iS})` : outer === 'log' ? `log(${iS},${n})` : outer === 'ln' ? `log(${iS})` : `${outer}(${iS})`;
+      return deriveWithSteps(fS).variants;
+    })(),
     promptTex: `h(x)=${fPlain}`,
     hint: HINT_EXPR,
     answerSpec: exprSpec(str),

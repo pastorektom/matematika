@@ -177,8 +177,8 @@ function t1(n, o) {
         const part = r.p < 2 ? `\\left(${r.s}\\right)` : r.s;
         if (i === 0) { s = part; return; }
         const prev = fs[i - 1];
-        const needDot = !n.imp || /^[0-9]/.test(part) || part.startsWith('\\frac') || prev.bare || /^[0-9]$/.test(prev.s.slice(-1)) && /^[0-9]/.test(part);
-        s += `${needDot ? '\\cdot ' : ''}${part}`;
+        const needDot = !n.imp || part.endsWith("'") || prev.s.endsWith("'") || /^[0-9]/.test(part) || part.startsWith('\\frac') || prev.bare || /^[0-9]$/.test(prev.s.slice(-1)) && /^[0-9]/.test(part);
+        s += `${needDot ? '\\cdot ' : /\\[a-zA-Z]+$/.test(prev.s) && /^[a-zA-Z]/.test(part) ? ' ' : ''}${part}`;
       });
       return { s, p: 2, bare: fs[fs.length - 1].bare };
     }
@@ -189,7 +189,7 @@ function t1(n, o) {
       return { s: `\\frac{${t0(n.n, o).s}}{${dr.s}}`, p: 4 };
     }
     case 'pow': {
-      if (n.b.t === 'fn' && !(o.marks && o.marks.has(n.b)) && !['exp', 'sqrt', 'log'].includes(n.b.f) && isInt(n.e) && n.e.v.n > 0) {
+      if (!o.plainPow && n.b.t === 'fn' && !(o.marks && o.marks.has(n.b)) && !['exp', 'sqrt', 'log'].includes(n.b.f) && isInt(n.e) && n.e.v.n > 0) {
         return { ...fnTex(n.b, o, String(n.e.v.n)), p: 4 };
       }
       return { s: `${tp(t0(n.b, o), 5)}^{${t0(n.e, o).s}}`, p: 4 };

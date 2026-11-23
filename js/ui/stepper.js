@@ -103,7 +103,7 @@ export function mountStepper(el, steps, opts = {}) {
 }
 
 // Krokovač příkladu: má-li příklad varianty postupu (problem.variants), nad krokovačem je přepínač
-// „Podrobný postup“ / varianta; volba se pamatuje v localStorage. Bez variant je to obyčejný mountStepper.
+// „Podrobný postup“ / varianta; výchozí je „Postup ze semináře“, volba se pamatuje v localStorage. Bez variant je to obyčejný mountStepper.
 const VKEY = 'matika-postup-varianta';
 export function mountSolution(el, problem, opts = {}) {
   const doc = el.ownerDocument;
@@ -111,7 +111,8 @@ export function mountSolution(el, problem, opts = {}) {
   const all = [{ id: 'detail', title: 'Podrobný postup', solution: problem.solution }, ...problem.variants];
   let saved = null;
   try { saved = localStorage.getItem(VKEY); } catch { /* bez ukládání */ }
-  let cur = Math.max(0, all.findIndex((v) => v.id === saved));
+  let cur = all.findIndex((v) => v.id === saved);
+  if (cur < 0) cur = Math.max(0, all.findIndex((v) => v.id === 'seminar'));
   el.textContent = '';
   const bar = h(doc, 'div', { class: 'variant-tabs', role: 'tablist', 'aria-label': 'Varianta postupu' });
   const host = h(doc, 'div', { 'data-role': 'variant-host' });
